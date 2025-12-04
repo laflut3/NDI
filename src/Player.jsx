@@ -13,8 +13,9 @@ export default function Player({ pois, onPOITrigger }) {
   const velocity = useRef(new THREE.Vector3(0, 0, 0));
 
   // Track which POIs have been visited to prevent spam
-  const visitedPOIs = useRef(new Set());
-  const gamePaused = useRef(false);
+  const visitedPOIs = useRef(new Set())
+  const gamePaused = useRef(false)
+  const playerNearPOI = useRef(new Map()) // Track if player is currently near each POI
 
   // Get keyboard state
   const [, getKeys] = useKeyboardControls();
@@ -38,10 +39,12 @@ export default function Player({ pois, onPOITrigger }) {
     const keys = getKeys();
 
     // Movement parameters
-    const acceleration = 15;
-    const turnSpeed = 2.5;
-    const friction = 0.92;
-    const maxSpeed = 8;
+    const baseAcceleration = 25
+    const boostMultiplier = keys.boost ? 2.0 : 1.0
+    const acceleration = baseAcceleration * boostMultiplier
+    const turnSpeed = 3.5
+    const friction = 0.93
+    const maxSpeed = keys.boost ? 20 : 12
 
     // Steering
     if (keys.left) {
@@ -115,16 +118,24 @@ export default function Player({ pois, onPOITrigger }) {
           Math.pow(newPos[2] - poi.position[2], 2)
       );
 
-      // Trigger POI if close enough and not recently visited
-      if (distance < 3 && !visitedPOIs.current.has(poi.id)) {
-        visitedPOIs.current.add(poi.id);
-        gamePaused.current = true;
-        onPOITrigger(poi);
+      const isNearPOI = distance < 3
+      const wasNearPOI = playerNearPOI.current.get(poi.id)
 
-        // Allow revisiting after 3 seconds
-        setTimeout(() => {
-          visitedPOIs.current.delete(poi.id);
-        }, 3000);
+      // Update near status
+      playerNearPOI.current.set(poi.id, isNearPOI)
+
+      // Only trigger if:
+      // 1. Player just entered the range (wasn't near before, is near now)
+      // 2. POI hasn't been visited yet OR player left and came back
+      if (isNearPOI && !wasNearPOI && !visitedPOIs.current.has(poi.id)) {
+        visitedPOIs.current.add(poi.id)
+        gamePaused.current = true
+        onPOITrigger(poi)
+      }
+
+      // Clear visited status when player leaves the POI range
+      if (!isNearPOI && wasNearPOI) {
+        visitedPOIs.current.delete(poi.id)
       }
     });
   });
