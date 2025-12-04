@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import Chatbot from './Chatbot'
 
 export default function Overlay({ poiData, onClose, onContinue }) {
   // Handle ESC key to close modal
@@ -78,7 +79,7 @@ export default function Overlay({ poiData, onClose, onContinue }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -216,51 +217,19 @@ function QuizContent({ poiData }) {
   )
 }
 
-// Chatbot POI Content
+// Chatbot POI Content - Utilise le vrai composant Chatbot
 function ChatbotContent({ poiData }) {
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-200">
-        <p className="text-gray-700 text-lg leading-relaxed mb-4">
+    <div className="space-y-4">
+      {/* Introduction */}
+      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-xl border-2 border-yellow-200">
+        <p className="text-gray-700 leading-relaxed">
           {poiData.content.description}
         </p>
-        <div className="flex items-center gap-3 text-orange-600 bg-orange-50 p-4 rounded-lg">
-          <span className="text-2xl">🤖</span>
-          <p className="text-sm">{poiData.content.message}</p>
-        </div>
       </div>
 
-      {/* Placeholder for chatbot UI */}
-      <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
-        <div className="bg-gray-50 p-4 border-b border-gray-200">
-          <p className="text-sm font-semibold text-gray-600">Chat Interface Preview</p>
-        </div>
-        <div className="p-4 space-y-3 h-48 overflow-y-auto bg-gray-50">
-          <div className="flex justify-start">
-            <div className="bg-white p-3 rounded-lg shadow-sm max-w-xs border border-gray-200">
-              <p className="text-sm text-gray-700">Hello! Ask me anything about digital independence!</p>
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <div className="bg-yellow-100 p-3 rounded-lg shadow-sm max-w-xs border border-yellow-200">
-              <p className="text-sm text-gray-700">Coming soon...</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-4 border-t border-gray-200 bg-white">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Type your question here..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              disabled
-            />
-            <button className="px-6 py-2 bg-yellow-400 text-gray-800 rounded-lg font-semibold text-sm hover:bg-yellow-500 transition-colors" disabled>
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Chatbot interactif */}
+      <Chatbot />
     </div>
   )
 }
