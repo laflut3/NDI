@@ -1,11 +1,18 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import Quiz from './Quiz'
 import Chatbot from './Chatbot'
 
 export default function Overlay({ poiData, onClose, onContinue }) {
-  // Handle ESC key to close modal
+  const [quizCompleted, setQuizCompleted] = useState(false)
+  const [quizResults, setQuizResults] = useState(null)
+
+  // For quiz type, user must complete it to exit
+  const canClose = poiData.type !== 'quiz' || quizCompleted
+
+  // Handle ESC key to close modal (only if allowed)
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && canClose) {
         if (onContinue) onContinue(poiData)
         else onClose()
       }
@@ -13,13 +20,31 @@ export default function Overlay({ poiData, onClose, onContinue }) {
 
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, [onClose, onContinue, poiData])
+  }, [onClose, onContinue, poiData, canClose])
+
+  // Handle quiz completion - just mark complete, don't auto-close
+  const handleQuizComplete = (score, percentage, xpEarned) => {
+    setQuizCompleted(true)
+    setQuizResults({ score, percentage, xpEarned })
+    // Don't auto-close - let the user click Continue button
+  }
+
+  // Handle continue button click after quiz completion
+  const handleContinueAfterQuiz = () => {
+    if (onContinue && quizResults) {
+      const poiWithResults = {
+        ...poiData,
+        quizResults: quizResults
+      }
+      onContinue(poiWithResults)
+    }
+  }
 
   // Render different content based on POI type
   const renderContent = () => {
     switch (poiData.type) {
       case 'quiz':
-        return <QuizContent poiData={poiData} />
+        return <QuizContent poiData={poiData} onComplete={handleQuizComplete} />
       case 'chatbot':
         return <ChatbotContent poiData={poiData} />
       case 'funfact':
@@ -28,54 +53,81 @@ export default function Overlay({ poiData, onClose, onContinue }) {
         return <DefaultContent poiData={poiData} />
     }
   }
+
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-slideUp">
-        {/* Header with icon and color accent */}
-        <div
-          className="p-6 text-white relative overflow-hidden"
-          style={{
-            background: `linear-gradient(135deg, ${poiData.color} 0%, ${poiData.color}dd 100%)`
-          }}
-        >
-          <div className="absolute top-0 right-0 text-9xl opacity-10 transform translate-x-8 -translate-y-4">
-            {poiData.icon}
-          </div>
-          <div className="relative z-10">
-            <div className="text-5xl mb-3">{poiData.icon}</div>
-            <h2 className="text-3xl font-bold mb-2">{poiData.content.heading}</h2>
-            <p className="text-white/90 text-sm">
-              {poiData.type === 'quiz' && 'Quiz Station'}
-              {poiData.type === 'chatbot' && 'Digital Assistant'}
-              {poiData.type === 'funfact' && 'Fun Fact Discovery'}
-            </p>
-          </div>
-        </div>
-
-        {/* Dynamic Content */}
-        <div className="p-8">
-          {renderContent()}
-
-          {/* Action button */}
-          <button
-            onClick={() => {
-              if (onContinue) onContinue(poiData)
-              else onClose()
-            }}
-            className="mt-8 w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4" style={{animation: 'fadeIn 0.3s ease-out'}}>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden" style={{animation: 'slideUp 0.4s ease-out'}}>
+        {/* Header with icon and color accent - Hidden for quiz */}
+        {poiData.type !== 'quiz' && (
+          <div
+            className="p-6 text-white relative overflow-hidden flex-shrink-0"
             style={{
-              background: `linear-gradient(135deg, ${poiData.color} 0%, ${poiData.color}cc 100%)`
+              background: `linear-gradient(135deg, ${poiData.color} 0%, ${poiData.color}dd 100%)`
             }}
           >
-            Continue Mission →
-          </button>
+            <div className="absolute top-0 right-0 text-9xl opacity-10 transform translate-x-8 -translate-y-4">
+              {poiData.icon}
+            </div>
+            <div className="relative z-10">
+              <div className="text-5xl mb-3">{poiData.icon}</div>
+              <h2 className="text-3xl font-bold mb-2">{poiData.content.heading}</h2>
+              <p className="text-white/90 text-sm">
+                {poiData.type === 'chatbot' && 'Assistant Numérique'}
+                {poiData.type === 'funfact' && 'Découverte de Faits'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable Content Container */}
+        <div className="overflow-y-auto flex-1">
+          <div className="p-8">
+            {renderContent()}
+
+            {/* Action button - for non-quiz types */}
+            {poiData.type !== 'quiz' && (
+              <button
+                onClick={() => {
+                  if (onContinue) onContinue(poiData)
+                  else onClose()
+                }}
+                className="mt-8 w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                style={{
+                  background: `linear-gradient(135deg, ${poiData.color} 0%, ${poiData.color}cc 100%)`
+                }}
+              >
+                Continuer la Mission →
+              </button>
+            )}
+
+            {/* Action button - for quiz after completion */}
+            {poiData.type === 'quiz' && quizCompleted && (
+              <button
+                onClick={handleContinueAfterQuiz}
+                className="mt-8 w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 bg-gradient-to-r from-green-500 to-emerald-600"
+              >
+                Continuer la Mission →
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-8 pb-6 text-center">
-          <p className="text-gray-500 text-xs">
-            Press ESC or click the button to resume your mission
-          </p>
+        {/* Footer - Fixed at bottom */}
+        <div className="flex-shrink-0 border-t border-gray-200">
+          {poiData.type !== 'quiz' && (
+            <div className="px-8 py-4 text-center bg-gray-50">
+              <p className="text-gray-500 text-xs">
+                Appuyez sur ESC ou cliquez sur le bouton pour reprendre votre mission
+              </p>
+            </div>
+          )}
+          {poiData.type === 'quiz' && !quizCompleted && (
+            <div className="px-8 py-4 text-center bg-orange-50">
+              <p className="text-orange-600 text-sm font-semibold">
+                ⚠️ Vous devez terminer le quiz pour continuer
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -112,104 +164,118 @@ export default function Overlay({ poiData, onClose, onContinue }) {
   )
 }
 
-// Quiz POI Content
-function QuizContent({ poiData }) {
+// Quiz POI Content - Renders the actual Quiz component
+function QuizContent({ poiData, onComplete }) {
+  if (!poiData.quizData) {
+    return (
+      <div className="text-red-600 p-4">
+        Error: Quiz data not found for this POI
+      </div>
+    )
+  }
+
+  return <Quiz quizData={poiData.quizData} onComplete={onComplete} />
+}
+
+// Chatbot POI Content
+function ChatbotContent({ poiData }) {
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 rounded-2xl text-white">
-        <div className="absolute top-0 right-0 text-9xl opacity-10 transform translate-x-4 -translate-y-4">
-          📝
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-3xl">
-              🎯
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold">Challenge Accepted!</h3>
-              <p className="text-white/90 text-sm">Test your digital independence knowledge</p>
-            </div>
-          </div>
-          <p className="text-white/95 leading-relaxed">
-            {poiData.content.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Quiz Preview Cards */}
-      <div className="grid grid-cols-1 gap-4">
-        {/* Question Preview */}
-        <div className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0">
-              ?
-            </div>
-            <div className="flex-1">
-              <h4 className="text-lg font-bold text-gray-800 mb-2">Interactive Questions</h4>
-              <p className="text-gray-600 text-sm">Multiple choice questions about open source, sustainability, and digital rights</p>
-              <div className="mt-3 flex items-center gap-2 text-blue-600 text-xs font-semibold">
-                <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-                <span>Ready to start</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Tracking */}
-        <div className="group relative bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 hover:border-green-400 transition-all hover:shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg flex-shrink-0">
-              📊
-            </div>
-            <div className="flex-1">
-              <h4 className="text-lg font-bold text-gray-800 mb-2">Track Your Progress</h4>
-              <p className="text-gray-600 text-sm">Earn XP and unlock badges as you complete challenges</p>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="bg-white/80 p-2 rounded-lg text-center">
-                  <div className="text-xl font-bold text-green-600">+125</div>
-                  <div className="text-xs text-gray-600">XP Reward</div>
-                </div>
-                <div className="bg-white/80 p-2 rounded-lg text-center">
-                  <div className="text-xl">🏆</div>
-                  <div className="text-xs text-gray-600">Badges</div>
-                </div>
-                <div className="bg-white/80 p-2 rounded-lg text-center">
-                  <div className="text-xl">📈</div>
-                  <div className="text-xs text-gray-600">Levels</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Competitive Element */}
-        <div className="group relative bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-xl border-2 border-orange-200 hover:border-orange-400 transition-all hover:shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg flex-shrink-0">
-              ⏱️
-            </div>
-            <div className="flex-1">
-              <h4 className="text-lg font-bold text-gray-800 mb-2">Beat the Clock</h4>
-              <p className="text-gray-600 text-sm">Answer quickly for bonus points and climb the leaderboard</p>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="flex-1 bg-white/80 h-2 rounded-full overflow-hidden">
-                  <div className="h-full w-3/4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse"></div>
-                </div>
-                <span className="text-sm font-bold text-orange-600">Ready!</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Coming Soon Notice */}
-      <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl border-2 border-purple-300">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🚀</span>
+      {/* Introduction */}
+      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border-2 border-yellow-300">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">🤖</div>
           <div>
-            <p className="text-purple-900 font-semibold">Quiz System Coming Soon!</p>
-            <p className="text-purple-700 text-sm">{poiData.content.message}</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Assistant Numérique NIRD</h3>
+            <p className="text-gray-700 leading-relaxed">
+              Votre guide personnel pour comprendre l'indépendance numérique, les logiciels libres et la sobriété technologique.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tips Section */}
+      <div className="space-y-4">
+        <h4 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <span>💡</span>
+          <span>Conseils Essentiels pour l'Indépendance Numérique</span>
+        </h4>
+
+        {/* Tip 1 */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">1</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Privilégiez les Logiciels Libres</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Utilisez des alternatives libres comme LibreOffice, GIMP, ou Audacity. Ces logiciels respectent votre liberté, sont gratuits et peuvent prolonger la vie de votre matériel.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tip 2 */}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">2</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Protégez Vos Données Personnelles</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Choisissez des services qui respectent le RGPD et stockent vos données en Europe. Évitez les Big Tech qui monétisent vos informations personnelles.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tip 3 */}
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border-2 border-purple-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">3</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Pratiquez la Sobriété Numérique</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Supprimez vos vieux e-mails, limitez le streaming HD, et nettoyez votre cloud. Chaque geste compte pour réduire l'empreinte carbone du numérique.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tip 4 */}
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-5 rounded-xl border-2 border-orange-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">4</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Donnez une Seconde Vie au Matériel</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Un ordinateur "obsolète" avec Linux peut encore servir pour la bureautique, la navigation et l'éducation. Le reconditionnement réduit les déchets électroniques.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tip 5 */}
+        <div className="bg-gradient-to-br from-red-50 to-red-100 p-5 rounded-xl border-2 border-red-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">5</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Partagez Vos Connaissances</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Participez aux communs numériques éducatifs. Documentez vos solutions, partagez vos ressources et contribuez à l'autonomie collective.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Card */}
+      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 p-6 rounded-xl text-white">
+        <div className="flex items-center gap-4">
+          <div className="text-5xl">🚀</div>
+          <div>
+            <h5 className="font-bold text-lg mb-2">Passez à l'Action !</h5>
+            <p className="text-white/90 text-sm">
+              Rejoignez la communauté NIRD et contribuez au mouvement pour une éducation numérique responsable, inclusive et durable.
+            </p>
           </div>
         </div>
       </div>
@@ -234,21 +300,109 @@ function ChatbotContent({ poiData }) {
   )
 }
 
+
 // Fun Fact POI Content
 function FunFactContent({ poiData }) {
   return (
-    <div className="space-y-4">
-      {poiData.content.facts.map((fact, index) => (
-        <div
-          key={index}
-          className="flex items-start gap-4 p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 hover:shadow-md transition-shadow"
-        >
-          <div className="text-3xl">{fact.split(' ')[0]}</div>
-          <p className="text-gray-700 leading-relaxed text-sm flex-1 pt-2">
-            {fact.split(' ').slice(1).join(' ')}
-          </p>
+    <div className="space-y-6">
+      {/* Introduction */}
+      <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-6 rounded-xl text-white">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">💡</div>
+          <div>
+            <h3 className="text-xl font-bold mb-2">Faits Fascinants sur le Numérique</h3>
+            <p className="text-white/90 leading-relaxed">
+              Découvrez des informations surprenantes sur la technologie, l'écologie numérique et l'impact de nos usages quotidiens.
+            </p>
+          </div>
         </div>
-      ))}
+      </div>
+
+      {/* Facts Grid */}
+      <div className="space-y-4">
+        {poiData.content.facts.map((fact, index) => {
+          const emoji = fact.split(' ')[0]
+          const text = fact.split(' ').slice(1).join(' ')
+
+          // Assign different gradient colors to each fact
+          const gradients = [
+            'from-blue-50 to-cyan-50 border-blue-300',
+            'from-green-50 to-emerald-50 border-green-300',
+            'from-purple-50 to-violet-50 border-purple-300',
+            'from-orange-50 to-red-50 border-orange-300',
+            'from-pink-50 to-rose-50 border-pink-300',
+            'from-yellow-50 to-amber-50 border-yellow-300'
+          ]
+
+          return (
+            <div
+              key={index}
+              className={`bg-gradient-to-br ${gradients[index % gradients.length]} p-5 rounded-xl border-2 hover:shadow-lg transition-all hover:scale-[1.02] cursor-default`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="text-4xl flex-shrink-0">{emoji}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <h5 className="font-bold text-gray-800">Fait #{index + 1}</h5>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">
+                    {text}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Additional Info */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200">
+        <div className="flex items-start gap-4">
+          <div className="text-3xl">📚</div>
+          <div>
+            <h5 className="font-bold text-gray-800 mb-2">Le Saviez-Vous ?</h5>
+            <p className="text-gray-700 text-sm leading-relaxed mb-3">
+              Ces faits illustrent l'importance de la sobriété numérique et du réemploi du matériel informatique. Chaque geste compte pour réduire notre empreinte écologique !
+            </p>
+            <div className="bg-white p-4 rounded-lg">
+              <h6 className="font-semibold text-gray-800 text-sm mb-2">Actions Concrètes :</h6>
+              <ul className="text-gray-700 text-xs space-y-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Recyclez vos anciens appareils électroniques</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Utilisez Linux pour prolonger la vie de vos ordinateurs</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Réduisez votre consommation de streaming vidéo</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Partagez ces connaissances avec votre entourage</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Impact Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-4 rounded-xl text-white text-center">
+          <div className="text-3xl font-bold mb-1">50M</div>
+          <div className="text-xs text-white/90">Tonnes de déchets électroniques/an</div>
+        </div>
+        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-4 rounded-xl text-white text-center">
+          <div className="text-3xl font-bold mb-1">96%</div>
+          <div className="text-xs text-white/90">Des serveurs utilisent Linux</div>
+        </div>
+      </div>
     </div>
   )
 }

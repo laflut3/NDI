@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import Player from './Player'
 import NPC from './NPC'
+import { QUIZ_DATA } from "./quizData";
+
 
 // POI data with positions and content
 export const POIS = [
@@ -11,12 +13,11 @@ export const POIS = [
     position: [20, 0.5, 20],
     color: "#ffffff",
     title: "Quiz Station 1",
-    icon: "📝",
+    icon: "💾",
+    quizData: QUIZ_DATA.quiz1,
     content: {
-      heading: "Quiz Challenge: Digital Independence",
-      description: "Test your knowledge about technology and sustainability!",
-      message:
-        "Quiz functionality will be integrated soon. Get ready to answer questions about open source, e-waste, and digital rights!",
+      heading: QUIZ_DATA.quiz1.title,
+      description: QUIZ_DATA.quiz1.subtitle,
     },
   },
   {
@@ -25,12 +26,11 @@ export const POIS = [
     position: [-20, 0.5, 20],
     color: "#ffffff",
     title: "Quiz Station 2",
-    icon: "📝",
+    icon: "🚦",
+    quizData: QUIZ_DATA.quiz2,
     content: {
-      heading: "Quiz Challenge: Tech Literacy",
-      description: "How much do you know about your digital rights?",
-      message:
-        "Quiz functionality will be integrated soon. Prepare to test your tech knowledge!",
+      heading: QUIZ_DATA.quiz2.title,
+      description: QUIZ_DATA.quiz2.subtitle,
     },
   },
   {
@@ -39,12 +39,11 @@ export const POIS = [
     position: [20, 0.5, -20],
     color: "#ffffff",
     title: "Quiz Station 3",
-    icon: "📝",
+    icon: "🎁",
+    quizData: QUIZ_DATA.quiz3,
     content: {
-      heading: "Quiz Challenge: Sustainability",
-      description: "Learn about the environmental impact of technology!",
-      message:
-        "Quiz functionality will be integrated soon. Challenge yourself!",
+      heading: QUIZ_DATA.quiz3.title,
+      description: QUIZ_DATA.quiz3.subtitle,
     },
   },
   {
@@ -53,11 +52,11 @@ export const POIS = [
     position: [-20, 0.5, -20],
     color: "#ffffff",
     title: "Quiz Station 4",
-    icon: "📝",
+    icon: "🗺️",
+    quizData: QUIZ_DATA.quiz4,
     content: {
-      heading: "Quiz Challenge: Privacy & Security",
-      description: "Protect yourself in the digital world!",
-      message: "Quiz functionality will be integrated soon. Stay tuned!",
+      heading: QUIZ_DATA.quiz4.title,
+      description: QUIZ_DATA.quiz4.subtitle,
     },
   },
 
@@ -370,6 +369,128 @@ function StickMan({ color }) {
       </mesh>
     </group>
   );
+}
+
+// Old Computer/Monitor for e-waste theme
+function OldComputer({ position, rotation = 0 }) {
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Monitor */}
+      <mesh position={[0, 0.6, 0]} castShadow>
+        <boxGeometry args={[0.8, 0.6, 0.1]} />
+        <meshStandardMaterial color="#2c3e50" />
+      </mesh>
+      {/* Screen */}
+      <mesh position={[0, 0.6, 0.06]}>
+        <boxGeometry args={[0.7, 0.5, 0.02]} />
+        <meshStandardMaterial color="#1a1a1a" emissive="#004400" emissiveIntensity={0.2} />
+      </mesh>
+      {/* Base */}
+      <mesh position={[0, 0.15, 0]} castShadow>
+        <boxGeometry args={[0.3, 0.3, 0.3]} />
+        <meshStandardMaterial color="#34495e" />
+      </mesh>
+    </group>
+  )
+}
+
+// Recycling Bin for sustainability theme
+function RecyclingBin({ position }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.3, 0.35, 0.8, 8]} />
+        <meshStandardMaterial color="#27ae60" />
+      </mesh>
+      {/* Recycling symbol */}
+      <mesh position={[0, 0.5, 0.36]}>
+        <circleGeometry args={[0.15, 32]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+    </group>
+  )
+}
+
+// Server Rack for tech infrastructure theme
+function ServerRack({ position }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.8, 0]} castShadow>
+        <boxGeometry args={[0.6, 1.6, 0.4]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      </mesh>
+      {/* Server LEDs */}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} position={[0.25, 0.3 + i * 0.35, 0.21]}>
+          <sphereGeometry args={[0.03, 8, 8]} />
+          <meshStandardMaterial color="#00ff00" emissive="#00ff00" emissiveIntensity={1} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Information Kiosk for chatbot area
+function InfoKiosk({ position, rotation = 0 }) {
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Post */}
+      <mesh position={[0, 1, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 2, 8]} />
+        <meshStandardMaterial color="#3498db" metalness={0.6} />
+      </mesh>
+      {/* Info Screen */}
+      <mesh position={[0, 1.5, 0.1]} castShadow>
+        <boxGeometry args={[0.8, 0.6, 0.1]} />
+        <meshStandardMaterial color="#2980b9" />
+      </mesh>
+      {/* Screen Display */}
+      <mesh position={[0, 1.5, 0.16]}>
+        <boxGeometry args={[0.7, 0.5, 0.02]} />
+        <meshStandardMaterial color="#3498db" emissive="#3498db" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+// Display Board for educational content
+function DisplayBoard({ position, rotation = 0 }) {
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Frame */}
+      <mesh position={[0, 1.2, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.9, 0.08]} />
+        <meshStandardMaterial color="#8e44ad" />
+      </mesh>
+      {/* Display area */}
+      <mesh position={[0, 1.2, 0.05]}>
+        <boxGeometry args={[1.1, 0.8, 0.02]} />
+        <meshStandardMaterial color="#9b59b6" emissive="#9b59b6" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Stand */}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.05, 0.1, 0.8, 8]} />
+        <meshStandardMaterial color="#7d3c98" />
+      </mesh>
+    </group>
+  )
+}
+
+// E-waste Container
+function EwasteContainer({ position }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.8, 1, 0.6]} />
+        <meshStandardMaterial color="#e74c3c" />
+      </mesh>
+      {/* Warning label */}
+      <mesh position={[0, 0.7, 0.31]}>
+        <boxGeometry args={[0.6, 0.3, 0.02]} />
+        <meshStandardMaterial color="#f39c12" />
+      </mesh>
+    </group>
+  )
 }
 
 // POI marker with glowing effect
@@ -705,6 +826,38 @@ export default function GameScene({ onPOITrigger }) {
         text="Fun Facts →"
         pointsTo={-Math.PI / 2}
       />
+
+      {/* Thematic Decorative Objects around POIs */}
+
+      {/* Around Quiz 1 (💾 Durability/E-waste theme) at [20, 0.5, 20] */}
+      <OldComputer position={[22, 0, 18]} rotation={Math.PI / 4} />
+      <RecyclingBin position={[18, 0, 22]} />
+      <EwasteContainer position={[23, 0, 22]} />
+
+      {/* Around Quiz 2 (🚦 3 Rules theme) at [-20, 0.5, 20] */}
+      <OldComputer position={[-22, 0, 18]} rotation={-Math.PI / 4} />
+      <RecyclingBin position={[-18, 0, 22]} />
+      <ServerRack position={[-23, 0, 19]} />
+
+      {/* Around Quiz 3 (🎁 Sharing tools theme) at [20, 0.5, -20] */}
+      <OldComputer position={[22, 0, -18]} rotation={Math.PI / 3} />
+      <EwasteContainer position={[18, 0, -22]} />
+      <RecyclingBin position={[23, 0, -21]} />
+
+      {/* Around Quiz 4 (🗺️ Documentation theme) at [-20, 0.5, -20] */}
+      <OldComputer position={[-22, 0, -18]} rotation={-Math.PI / 3} />
+      <DisplayBoard position={[-18, 0, -22]} rotation={Math.PI / 2} />
+      <InfoKiosk position={[-23, 0, -21]} />
+
+      {/* Around Chatbot (🤖 Digital Assistant) at [-35, 0.5, 5] */}
+      <InfoKiosk position={[-33, 0, 7]} rotation={Math.PI / 6} />
+      <DisplayBoard position={[-37, 0, 3]} rotation={-Math.PI / 4} />
+      <ServerRack position={[-33, 0, 3]} />
+
+      {/* Around Fun Fact (💡 Tech Facts) at [0, 0.5, -30] */}
+      <ServerRack position={[2, 0, -28]} />
+      <DisplayBoard position={[-2, 0, -32]} rotation={Math.PI / 2} />
+      <InfoKiosk position={[2, 0, -32]} />
 
       {/* POI Markers */}
       {POIS.map((poi) => (

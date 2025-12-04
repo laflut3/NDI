@@ -22,71 +22,62 @@ function App() {
   // State for showing landing screen
   const [showLanding, setShowLanding] = useState(true)
 
-  // Player level (persisted to localStorage)
-  const [level, setLevel] = useState(() => {
+  // Load initial game state from localStorage
+  const loadGameState = () => {
     try {
-      const v = parseInt(localStorage.getItem('ndi_level') || '1', 10)
-      return Number.isNaN(v) ? 1 : v
+      const saved = localStorage.getItem('ndi_game_state')
+      if (saved) {
+        const data = JSON.parse(saved)
+        return {
+          level: data.level || 1,
+          xpProgress: data.xpProgress || 0,
+          completedPOIs: data.completedPOIs || [],
+          badges: data.badges || []
+        }
+      }
     } catch (e) {
-      return 1
+      console.error('Error loading game state:', e)
     }
-  })
+    return { level: 1, xpProgress: 0, completedPOIs: [], badges: [] }
+  }
 
-  // XP progress inside current level (persisted)
-  const [xpProgress, setXpProgress] = useState(() => {
-    try {
-      const v = parseInt(localStorage.getItem('ndi_xp_progress') || '0', 10)
-      return Number.isNaN(v) ? 0 : v
-    } catch (e) {
-      return 0
-    }
-  })
+  const initialState = loadGameState()
 
-  // Persist level and xp progress when they change
+  // Player level
+  const [level, setLevel] = useState(initialState.level)
+  // XP progress inside current level
+  const [xpProgress, setXpProgress] = useState(initialState.xpProgress)
+  // Track completed POIs
+  const [completedPOIs, setCompletedPOIs] = useState(initialState.completedPOIs)
+  // Badges
+  const [badges, setBadges] = useState(initialState.badges)
+
+  // Save game state whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem('ndi_level', String(level))
-      localStorage.setItem('ndi_xp_progress', String(xpProgress))
+      const gameState = {
+        level,
+        xpProgress,
+        completedPOIs,
+        badges,
+        lastSaved: Date.now()
+      }
+      localStorage.setItem('ndi_game_state', JSON.stringify(gameState))
     } catch (e) {
-      // ignore
+      console.error('Error saving game state:', e)
     }
-  }, [level, xpProgress])
+  }, [level, xpProgress, completedPOIs, badges])
 
-  // Track completed POIs so we don't increment level twice for same POI
-  const [completedPOIs, setCompletedPOIs] = useState(() => {
-    try {
-      const raw = localStorage.getItem('ndi_completed_pois')
-      return raw ? JSON.parse(raw) : []
-    } catch (e) {
-      return []
+  // Reset progress function
+  const resetProgress = () => {
+    if (window.confirm('Êtes-vous sûr de vouloir réinitialiser votre progression ?')) {
+      localStorage.removeItem('ndi_game_state')
+      setLevel(1)
+      setXpProgress(0)
+      setCompletedPOIs([])
+      setBadges([])
     }
-  })
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ndi_completed_pois', JSON.stringify(completedPOIs))
-    } catch (e) {
-      // ignore
-    }
-  }, [completedPOIs])
-
-  // Badges (persisted)
-  const [badges, setBadges] = useState(() => {
-    try {
-      const raw = localStorage.getItem('ndi_badges')
-      return raw ? JSON.parse(raw) : []
-    } catch (e) {
-      return []
-    }
-  })
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ndi_badges', JSON.stringify(badges))
-    } catch (e) {
-      // ignore
-    }
-  }, [badges])
+  }
 
   const [showBadges, setShowBadges] = useState(false)
   const [highlightBadgeId, setHighlightBadgeId] = useState(null)
@@ -124,8 +115,8 @@ function App() {
             />
           </div>
         </div>
-        {/* Badges button */}
-        <div className="absolute right-6 top-20">
+        {/* Badges and Reset buttons */}
+        <div className="absolute right-6 top-20 flex flex-col gap-2">
           <button
             onClick={() => setShowBadges(true)}
             className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-lg flex items-center gap-2 font-semibold"
@@ -137,6 +128,13 @@ function App() {
                 {badges.length}
               </span>
             )}
+          </button>
+          <button
+            onClick={resetProgress}
+            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 shadow-lg flex items-center gap-2 font-semibold text-sm"
+          >
+            <span className="text-lg">🔄</span>
+            <span>Réinitialiser</span>
           </button>
         </div>
         <p className="text-white/90 text-center mt-2 text-sm">
@@ -195,17 +193,23 @@ function App() {
             // Only award XP once per POI
             if (!completedPOIs.includes(poi.id)) {
               // Calculate XP based on POI type
-              let pointsCount = 0
-              if (poi.content?.points) {
-                pointsCount = poi.content.points.length
-              } else if (poi.content?.facts) {
-                pointsCount = poi.content.facts.length
-              } else if (poi.type === 'quiz') {
-                pointsCount = 5 // Fixed XP for quiz completion
-              } else if (poi.type === 'chatbot') {
-                pointsCount = 3 // Fixed XP for chatbot interaction
+              let award = 0
+
+              // For quiz type, use the actual quiz results if available
+              if (poi.type === 'quiz' && poi.quizResults) {
+                award = poi.quizResults.xpEarned
+              } else {
+                // For other types, calculate based on content
+                let pointsCount = 0
+                if (poi.content?.points) {
+                  pointsCount = poi.content.points.length
+                } else if (poi.content?.facts) {
+                  pointsCount = poi.content.facts.length
+                } else if (poi.type === 'chatbot') {
+                  pointsCount = 3 // Fixed XP for chatbot interaction
+                }
+                award = pointsCount * XP_PER_POINT
               }
-              const award = pointsCount * XP_PER_POINT
 
               // Compute new progress and level ups
               let newLevel = level
@@ -274,28 +278,52 @@ function App() {
                 }
               })
 
+              // Store new badges for later display
               if (newBadges.length > 0) {
                 setBadges(prev => [...prev, ...newBadges])
                 setHighlightBadgeId(newBadges[0].id)
-                setShowBadges(true)
               }
 
+              // Close POI overlay first
+              setActivePOI(null)
+
+              // Show modals in sequence: Level-up first, then badges
               if (gainedLevels > 0) {
+                // Show level-up immediately
                 setLevelUpNumber(newLevel)
                 setLevelUpXP(award)
                 setLevelUpLevels(gainedLevels)
                 setShowLevelUp(true)
-              }
-            }
 
-            setActivePOI(null)
+                // Queue badges to show after level-up if we have new badges
+                if (newBadges.length > 0) {
+                  // Badges will be shown when level-up closes (handled in LevelUp onClose)
+                  // We'll use a timeout to ensure level-up is seen first
+                }
+              } else if (newBadges.length > 0) {
+                // No level-up, show badges directly after a short delay
+                setTimeout(() => setShowBadges(true), 300)
+              }
+            } else {
+              // No XP/badges, just close the overlay
+              setActivePOI(null)
+            }
           }}
         />
       )}
 
       {/* Level Up Modal */}
       {showLevelUp && (
-        <LevelUp level={levelUpNumber} onClose={() => setShowLevelUp(false)} />
+        <LevelUp
+          level={levelUpNumber}
+          onClose={() => {
+            setShowLevelUp(false)
+            // Show badges modal after level-up if there are new badges
+            if (highlightBadgeId) {
+              setTimeout(() => setShowBadges(true), 300)
+            }
+          }}
+        />
       )}
 
       {/* Badges Modal */}

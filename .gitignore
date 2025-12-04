@@ -42,3 +42,8 @@ logs/
 
 # --- OS / fichiers temporaires ---
 .DS_Stor_
+
+
+# AI
+CLAUDE.md
+quiz.md
