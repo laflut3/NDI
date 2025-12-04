@@ -18,8 +18,6 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
   // Raycaster for collision detection
   const raycaster = useRef(new THREE.Raycaster());
   const collisionObjects = useRef([]);
-  const collisionFrameCounter = useRef(0);
-  const collisionCheckInterval = 3; // Check collisions every 3 frames
 
   // Trail state
   const [trailPoints, setTrailPoints] = useState([]);
@@ -41,6 +39,12 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
     const collectCollidableObjects = () => {
       const objects = [];
       scene.traverse((child) => {
+        // Handle instanced meshes (like trees)
+        if (child.isInstancedMesh) {
+          objects.push(child);
+          return;
+        }
+
         // Filter out ground, POI markers, trails, and the player itself
         if (
           child.isMesh &&
@@ -198,21 +202,11 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
       position[2] + velocity.current.z * delta,
     ];
 
-    // Raycast-based collision detection (throttled)
+    // Raycast-based collision detection
     let colliding = false;
     const playerRadius = 1.5;
 
-    // Increment frame counter and only check collisions every N frames
-    collisionFrameCounter.current++;
-    const shouldCheckCollision =
-      collisionFrameCounter.current >= collisionCheckInterval;
-
-    if (shouldCheckCollision) {
-      collisionFrameCounter.current = 0; // Reset counter
-    }
-
     if (
-      shouldCheckCollision &&
       collisionObjects.current.length > 0 &&
       velocity.current.length() > 0.01
     ) {
