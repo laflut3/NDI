@@ -1,6 +1,8 @@
-import { useRef } from "react";
-import Player from "./Player";
+import { useRef, useState } from 'react'
+import Player from './Player'
+import NPC from './NPC'
 import { QUIZ_DATA } from "./quizData";
+
 
 // POI data with positions and content
 export const POIS = [
@@ -527,7 +529,40 @@ function POIMarker({ data }) {
   );
 }
 
+// Define all collidable objects (buildings, trees)
+const OBSTACLES = [
+  // Buildings
+  { x: -10, z: 0, width: 8, depth: 12 },
+  { x: 10, z: 5, width: 10, depth: 8 },
+  { x: 5, z: -10, width: 6, depth: 6 },
+  { x: -15, z: -25, width: 12, depth: 10 },
+  // Trees (approximate circular collision as squares)
+  { x: 8, z: 12, width: 2.5, depth: 2.5 },
+  { x: -12, z: 10, width: 2.5, depth: 2.5 },
+  { x: 18, z: -8, width: 2.5, depth: 2.5 },
+  { x: -8, z: -12, width: 2.5, depth: 2.5 },
+  { x: 30, z: 15, width: 2.5, depth: 2.5 },
+  { x: -30, z: -20, width: 2.5, depth: 2.5 },
+  { x: 25, z: -25, width: 2.5, depth: 2.5 },
+  { x: -18, z: 18, width: 2.5, depth: 2.5 },
+  { x: 12, z: -30, width: 2.5, depth: 2.5 },
+  { x: -25, z: 15, width: 2.5, depth: 2.5 },
+  { x: 32, z: -10, width: 2.5, depth: 2.5 },
+  { x: -32, z: 8, width: 2.5, depth: 2.5 },
+];
+
 export default function GameScene({ onPOITrigger }) {
+  const [npcData, setNpcData] = useState(new Map());
+
+  // Callback to collect NPC position and collision data from each NPC
+  const handleGetNPCData = (npcId, data) => {
+    setNpcData(prev => {
+      const updated = new Map(prev);
+      updated.set(npcId, data);
+      return updated;
+    });
+  };
+
   return (
     <>
       {/* Lighting */}
@@ -829,8 +864,18 @@ export default function GameScene({ onPOITrigger }) {
         <POIMarker key={poi.id} data={poi} />
       ))}
 
+      {/* NPCs with random pathing */}
+      {Array.from({ length: 4 }).map((_, i) => (
+        <NPC 
+          key={`npc-${i}`}
+          id={`npc-${i}`}
+          obstacles={OBSTACLES}
+          onGetNPCData={handleGetNPCData}
+        />
+      ))}
+
       {/* Player with physics and camera */}
-      <Player pois={POIS} onPOITrigger={onPOITrigger} />
+      <Player pois={POIS} onPOITrigger={onPOITrigger} obstacles={OBSTACLES} npcData={npcData} />
     </>
   );
 }

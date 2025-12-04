@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 
-export default function Player({ pois, onPOITrigger }) {
+export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map() }) {
   const meshRef = useRef();
   const flamesRef = useRef();
   const { camera, scene } = useThree();
@@ -237,6 +237,27 @@ export default function Player({ pois, onPOITrigger }) {
       }
     }
 
+    // Check collision with NPCs using circle collision
+    if (!colliding && npcData.size > 0) {
+      const playerCollisionRadius = playerRadius;
+      for (const [npcId, npc] of npcData) {
+        if (npc.isDead) continue; // Skip dead NPCs
+        
+        const distance = Math.hypot(
+          newPos[0] - npc.position[0],
+          newPos[2] - npc.position[2]
+        );
+        const minDistance = playerCollisionRadius + npc.radius;
+        
+        if (distance < minDistance) {
+          // Kill the NPC
+          window.dispatchEvent(new CustomEvent(`npc-collision-${npcId}`));
+          colliding = true;
+          break;
+        }
+      }
+    }
+
     // Simple boundary check (keep player in map)
     if (Math.abs(newPos[0]) < 45 && Math.abs(newPos[2]) < 45 && !colliding) {
       setPosition(newPos);
@@ -337,6 +358,7 @@ export default function Player({ pois, onPOITrigger }) {
   });
 
   return (
+    <>
     <group>
       {/* Wheel trails */}
       {trailPoints.map((point, index) => {
@@ -536,5 +558,6 @@ export default function Player({ pois, onPOITrigger }) {
         )}
       </mesh>
     </group>
+    </>
   );
 }
