@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
-import Player from './Player'
-import NPC from './NPC'
+import { useRef, useEffect, useState } from "react";
+import { Matrix4 } from "three";
+import Player from "./Player";
+import NPC from "./NPC";
 import { QUIZ_DATA } from "./quizData";
-
 
 // POI data with positions and content
 export const POIS = [
@@ -100,21 +100,201 @@ export const POIS = [
   },
 ];
 
-// Simple tree component (cylinder trunk + cone top)
-function Tree({ position }) {
+// Tree positions array
+const TREE_POSITIONS = [
+  // Scattered trees around
+  [8, 0, 12],
+  [-12, 0, 10],
+  [18, 0, -8],
+  [-8, 0, -12],
+  [30, 0, 15],
+  [-30, 0, -20],
+  [25, 0, -25],
+  [-18, 0, 18],
+  [12, 0, -30],
+  [-25, 0, 15],
+  [32, 0, -10],
+  [-32, 0, 8],
+  // Dense forest - sparse edge
+  [18.2, 0, 20.5],
+  [21.4, 0, 19.8],
+  [16.7, 0, 24.3],
+  [19.5, 0, 22.1],
+  [20.8, 0, 18.6],
+  [24.3, 0, 19.4],
+  [26.8, 0, 20.7],
+  [29.6, 0, 19.2],
+  [32.4, 0, 20.5],
+  [35.1, 0, 19.8],
+  [37.9, 0, 21.3],
+  [40.7, 0, 20.1],
+  [43.2, 0, 19.6],
+  [45.8, 0, 21.4],
+  [15.9, 0, 27.8],
+  [17.3, 0, 31.2],
+  [19.8, 0, 28.9],
+  [21.6, 0, 25.4],
+  [18.5, 0, 35.7],
+  [20.3, 0, 33.4],
+  [16.8, 0, 38.9],
+  [19.1, 0, 41.3],
+  [21.2, 0, 39.7],
+  [17.9, 0, 44.6],
+  [20.7, 0, 46.2],
+  // Dense forest core
+  [22.3, 0, 22.7],
+  [24.8, 0, 23.4],
+  [27.5, 0, 24.8],
+  [29.3, 0, 23.9],
+  [31.2, 0, 26.3],
+  [33.7, 0, 24.5],
+  [35.8, 0, 25.1],
+  [37.6, 0, 23.8],
+  [39.4, 0, 26.9],
+  [41.9, 0, 25.3],
+  [43.7, 0, 24.5],
+  [45.8, 0, 26.2],
+  [47.4, 0, 24.9],
+  [23.6, 0, 26.8],
+  [26.9, 0, 28.4],
+  [28.5, 0, 27.2],
+  [29.8, 0, 29.7],
+  [32.1, 0, 28.5],
+  [33.5, 0, 27.8],
+  [35.9, 0, 29.1],
+  [37.9, 0, 29.2],
+  [39.7, 0, 27.8],
+  [41.3, 0, 28.6],
+  [43.8, 0, 29.4],
+  [45.8, 0, 27.4],
+  [47.9, 0, 28.7],
+  [22.8, 0, 30.3],
+  [25.4, 0, 31.7],
+  [28.7, 0, 31.5],
+  [30.6, 0, 30.4],
+  [32.4, 0, 32.8],
+  [34.8, 0, 31.6],
+  [36.1, 0, 30.9],
+  [38.4, 0, 32.7],
+  [40.6, 0, 32.3],
+  [42.3, 0, 30.8],
+  [44.2, 0, 31.7],
+  [46.7, 0, 32.9],
+  [48.3, 0, 31.4],
+  [23.9, 0, 34.2],
+  [25.8, 0, 33.6],
+  [27.6, 0, 35.8],
+  [30.3, 0, 35.1],
+  [32.9, 0, 34.3],
+  [34.7, 0, 33.9],
+  [36.4, 0, 35.7],
+  [38.2, 0, 35.4],
+  [40.7, 0, 34.1],
+  [42.8, 0, 34.2],
+  [44.5, 0, 35.9],
+  [46.3, 0, 35.8],
+  [48.7, 0, 34.8],
+  [22.4, 0, 36.9],
+  [24.9, 0, 38.3],
+  [27.4, 0, 37.2],
+  [29.8, 0, 39.1],
+  [31.8, 0, 38.6],
+  [33.5, 0, 37.4],
+  [35.6, 0, 36.8],
+  [37.9, 0, 39.3],
+  [39.8, 0, 38.1],
+  [41.6, 0, 37.8],
+  [43.5, 0, 37.4],
+  [45.9, 0, 38.7],
+  [47.8, 0, 39.2],
+  [23.7, 0, 40.6],
+  [26.2, 0, 39.8],
+  [28.3, 0, 41.9],
+  [29.6, 0, 41.3],
+  [31.9, 0, 42.8],
+  [33.9, 0, 40.5],
+  [35.7, 0, 41.7],
+  [37.4, 0, 41.9],
+  [39.8, 0, 40.4],
+  [41.7, 0, 39.7],
+  [43.4, 0, 42.3],
+  [45.4, 0, 41.2],
+  [47.6, 0, 42.7],
+  [22.9, 0, 43.8],
+  [25.6, 0, 44.9],
+  [28.3, 0, 43.4],
+  [30.4, 0, 45.6],
+  [32.7, 0, 44.8],
+  [34.9, 0, 43.7],
+  [36.4, 0, 42.9],
+  [38.7, 0, 45.1],
+  [40.1, 0, 44.2],
+  [42.6, 0, 43.9],
+  [44.8, 0, 43.6],
+  [46.8, 0, 45.4],
+  [48.9, 0, 44.3],
+  [23.8, 0, 47.2],
+  [26.5, 0, 45.7],
+  [28.9, 0, 48.1],
+  [30.8, 0, 47.2],
+  [32.6, 0, 46.8],
+  [34.2, 0, 46.3],
+  [36.8, 0, 48.4],
+  [38.6, 0, 47.8],
+  [40.9, 0, 46.7],
+  [42.4, 0, 45.9],
+  [44.7, 0, 48.2],
+  [46.7, 0, 47.1],
+  [48.4, 0, 48.6],
+];
+
+// Instanced tree component for better performance
+function InstancedTrees() {
+  const trunkRef = useRef();
+  const foliageRef = useRef();
+
+  useEffect(() => {
+    if (!trunkRef.current || !foliageRef.current) return;
+
+    const trunkMatrix = new Matrix4();
+    const foliageMatrix = new Matrix4();
+
+    TREE_POSITIONS.forEach((pos, i) => {
+      // Trunk position
+      trunkMatrix.setPosition(pos[0], pos[1] + 0.5, pos[2]);
+      trunkRef.current.setMatrixAt(i, trunkMatrix);
+
+      // Foliage position
+      foliageMatrix.setPosition(pos[0], pos[1] + 1.5, pos[2]);
+      foliageRef.current.setMatrixAt(i, foliageMatrix);
+    });
+
+    trunkRef.current.instanceMatrix.needsUpdate = true;
+    foliageRef.current.instanceMatrix.needsUpdate = true;
+  }, []);
+
   return (
-    <group position={position}>
-      {/* Trunk */}
-      <mesh position={[0, 0.5, 0]} castShadow>
+    <>
+      {/* Instanced trunks */}
+      <instancedMesh
+        ref={trunkRef}
+        args={[null, null, TREE_POSITIONS.length]}
+        castShadow
+      >
         <cylinderGeometry args={[0.3, 0.3, 1, 8]} />
         <meshStandardMaterial color="#8b4513" />
-      </mesh>
-      {/* Foliage */}
-      <mesh position={[0, 1.5, 0]} castShadow>
+      </instancedMesh>
+
+      {/* Instanced foliage */}
+      <instancedMesh
+        ref={foliageRef}
+        args={[null, null, TREE_POSITIONS.length]}
+        castShadow
+      >
         <coneGeometry args={[1.2, 2, 8]} />
         <meshStandardMaterial color="#228b22" />
-      </mesh>
-    </group>
+      </instancedMesh>
+    </>
   );
 }
 
@@ -383,7 +563,11 @@ function OldComputer({ position, rotation = 0 }) {
       {/* Screen */}
       <mesh position={[0, 0.6, 0.06]}>
         <boxGeometry args={[0.7, 0.5, 0.02]} />
-        <meshStandardMaterial color="#1a1a1a" emissive="#004400" emissiveIntensity={0.2} />
+        <meshStandardMaterial
+          color="#1a1a1a"
+          emissive="#004400"
+          emissiveIntensity={0.2}
+        />
       </mesh>
       {/* Base */}
       <mesh position={[0, 0.15, 0]} castShadow>
@@ -391,7 +575,7 @@ function OldComputer({ position, rotation = 0 }) {
         <meshStandardMaterial color="#34495e" />
       </mesh>
     </group>
-  )
+  );
 }
 
 // Recycling Bin for sustainability theme
@@ -408,7 +592,7 @@ function RecyclingBin({ position }) {
         <meshStandardMaterial color="#ffffff" />
       </mesh>
     </group>
-  )
+  );
 }
 
 // Server Rack for tech infrastructure theme
@@ -423,11 +607,15 @@ function ServerRack({ position }) {
       {[0, 1, 2, 3].map((i) => (
         <mesh key={i} position={[0.25, 0.3 + i * 0.35, 0.21]}>
           <sphereGeometry args={[0.03, 8, 8]} />
-          <meshStandardMaterial color="#00ff00" emissive="#00ff00" emissiveIntensity={1} />
+          <meshStandardMaterial
+            color="#00ff00"
+            emissive="#00ff00"
+            emissiveIntensity={1}
+          />
         </mesh>
       ))}
     </group>
-  )
+  );
 }
 
 // Information Kiosk for chatbot area
@@ -447,10 +635,14 @@ function InfoKiosk({ position, rotation = 0 }) {
       {/* Screen Display */}
       <mesh position={[0, 1.5, 0.16]}>
         <boxGeometry args={[0.7, 0.5, 0.02]} />
-        <meshStandardMaterial color="#3498db" emissive="#3498db" emissiveIntensity={0.5} />
+        <meshStandardMaterial
+          color="#3498db"
+          emissive="#3498db"
+          emissiveIntensity={0.5}
+        />
       </mesh>
     </group>
-  )
+  );
 }
 
 // Display Board for educational content
@@ -465,7 +657,11 @@ function DisplayBoard({ position, rotation = 0 }) {
       {/* Display area */}
       <mesh position={[0, 1.2, 0.05]}>
         <boxGeometry args={[1.1, 0.8, 0.02]} />
-        <meshStandardMaterial color="#9b59b6" emissive="#9b59b6" emissiveIntensity={0.3} />
+        <meshStandardMaterial
+          color="#9b59b6"
+          emissive="#9b59b6"
+          emissiveIntensity={0.3}
+        />
       </mesh>
       {/* Stand */}
       <mesh position={[0, 0.4, 0]} castShadow>
@@ -473,7 +669,7 @@ function DisplayBoard({ position, rotation = 0 }) {
         <meshStandardMaterial color="#7d3c98" />
       </mesh>
     </group>
-  )
+  );
 }
 
 // E-waste Container
@@ -490,7 +686,7 @@ function EwasteContainer({ position }) {
         <meshStandardMaterial color="#f39c12" />
       </mesh>
     </group>
-  )
+  );
 }
 
 // POI marker with glowing effect
@@ -556,7 +752,7 @@ export default function GameScene({ onPOITrigger }) {
 
   // Callback to collect NPC position and collision data from each NPC
   const handleGetNPCData = (npcId, data) => {
-    setNpcData(prev => {
+    setNpcData((prev) => {
       const updated = new Map(prev);
       updated.set(npcId, data);
       return updated;
@@ -635,152 +831,8 @@ export default function GameScene({ onPOITrigger }) {
         color="#cd853f"
       />
 
-      {/* Trees scattered around */}
-      <Tree position={[8, 0, 12]} />
-      <Tree position={[-12, 0, 10]} />
-      <Tree position={[18, 0, -8]} />
-      <Tree position={[-8, 0, -12]} />
-      <Tree position={[30, 0, 15]} />
-      <Tree position={[-30, 0, -20]} />
-      <Tree position={[25, 0, -25]} />
-      <Tree position={[-18, 0, 18]} />
-      <Tree position={[12, 0, -30]} />
-      <Tree position={[-25, 0, 15]} />
-      <Tree position={[32, 0, -10]} />
-      <Tree position={[-32, 0, 8]} />
-
-      {/* Dense forest in bottom right quadrant - randomly positioned with seamless borders */}
-      {/* Sparse edge trees for natural transition */}
-      <Tree position={[18.2, 0, 20.5]} />
-      <Tree position={[21.4, 0, 19.8]} />
-      <Tree position={[16.7, 0, 24.3]} />
-      <Tree position={[19.5, 0, 22.1]} />
-      <Tree position={[20.8, 0, 18.6]} />
-      <Tree position={[24.3, 0, 19.4]} />
-      <Tree position={[26.8, 0, 20.7]} />
-      <Tree position={[29.6, 0, 19.2]} />
-      <Tree position={[32.4, 0, 20.5]} />
-      <Tree position={[35.1, 0, 19.8]} />
-      <Tree position={[37.9, 0, 21.3]} />
-      <Tree position={[40.7, 0, 20.1]} />
-      <Tree position={[43.2, 0, 19.6]} />
-      <Tree position={[45.8, 0, 21.4]} />
-      <Tree position={[15.9, 0, 27.8]} />
-      <Tree position={[17.3, 0, 31.2]} />
-      <Tree position={[19.8, 0, 28.9]} />
-      <Tree position={[21.6, 0, 25.4]} />
-      <Tree position={[18.5, 0, 35.7]} />
-      <Tree position={[20.3, 0, 33.4]} />
-      <Tree position={[16.8, 0, 38.9]} />
-      <Tree position={[19.1, 0, 41.3]} />
-      <Tree position={[21.2, 0, 39.7]} />
-      <Tree position={[17.9, 0, 44.6]} />
-      <Tree position={[20.7, 0, 46.2]} />
-      {/* Main dense forest core */}
-      <Tree position={[22.3, 0, 22.7]} />
-      <Tree position={[24.8, 0, 23.4]} />
-      <Tree position={[27.5, 0, 24.8]} />
-      <Tree position={[29.3, 0, 23.9]} />
-      <Tree position={[31.2, 0, 26.3]} />
-      <Tree position={[33.7, 0, 24.5]} />
-      <Tree position={[35.8, 0, 25.1]} />
-      <Tree position={[37.6, 0, 23.8]} />
-      <Tree position={[39.4, 0, 26.9]} />
-      <Tree position={[41.9, 0, 25.3]} />
-      <Tree position={[43.7, 0, 24.5]} />
-      <Tree position={[45.8, 0, 26.2]} />
-      <Tree position={[47.4, 0, 24.9]} />
-      <Tree position={[23.6, 0, 26.8]} />
-      <Tree position={[26.9, 0, 28.4]} />
-      <Tree position={[28.5, 0, 27.2]} />
-      <Tree position={[29.8, 0, 29.7]} />
-      <Tree position={[32.1, 0, 28.5]} />
-      <Tree position={[33.5, 0, 27.8]} />
-      <Tree position={[35.9, 0, 29.1]} />
-      <Tree position={[37.9, 0, 29.2]} />
-      <Tree position={[39.7, 0, 27.8]} />
-      <Tree position={[41.3, 0, 28.6]} />
-      <Tree position={[43.8, 0, 29.4]} />
-      <Tree position={[45.8, 0, 27.4]} />
-      <Tree position={[47.9, 0, 28.7]} />
-      <Tree position={[22.8, 0, 30.3]} />
-      <Tree position={[25.4, 0, 31.7]} />
-      <Tree position={[28.7, 0, 31.5]} />
-      <Tree position={[30.6, 0, 30.4]} />
-      <Tree position={[32.4, 0, 32.8]} />
-      <Tree position={[34.8, 0, 31.6]} />
-      <Tree position={[36.1, 0, 30.9]} />
-      <Tree position={[38.4, 0, 32.7]} />
-      <Tree position={[40.6, 0, 32.3]} />
-      <Tree position={[42.3, 0, 30.8]} />
-      <Tree position={[44.2, 0, 31.7]} />
-      <Tree position={[46.7, 0, 32.9]} />
-      <Tree position={[48.3, 0, 31.4]} />
-      <Tree position={[23.9, 0, 34.2]} />
-      <Tree position={[25.8, 0, 33.6]} />
-      <Tree position={[27.6, 0, 35.8]} />
-      <Tree position={[30.3, 0, 35.1]} />
-      <Tree position={[32.9, 0, 34.3]} />
-      <Tree position={[34.7, 0, 33.9]} />
-      <Tree position={[36.4, 0, 35.7]} />
-      <Tree position={[38.2, 0, 35.4]} />
-      <Tree position={[40.7, 0, 34.1]} />
-      <Tree position={[42.8, 0, 34.2]} />
-      <Tree position={[44.5, 0, 35.9]} />
-      <Tree position={[46.3, 0, 35.8]} />
-      <Tree position={[48.7, 0, 34.8]} />
-      <Tree position={[22.4, 0, 36.9]} />
-      <Tree position={[24.9, 0, 38.3]} />
-      <Tree position={[27.4, 0, 37.2]} />
-      <Tree position={[29.8, 0, 39.1]} />
-      <Tree position={[31.8, 0, 38.6]} />
-      <Tree position={[33.5, 0, 37.4]} />
-      <Tree position={[35.6, 0, 36.8]} />
-      <Tree position={[37.9, 0, 39.3]} />
-      <Tree position={[39.8, 0, 38.1]} />
-      <Tree position={[41.6, 0, 37.8]} />
-      <Tree position={[43.5, 0, 37.4]} />
-      <Tree position={[45.9, 0, 38.7]} />
-      <Tree position={[47.8, 0, 39.2]} />
-      <Tree position={[23.7, 0, 40.6]} />
-      <Tree position={[26.2, 0, 39.8]} />
-      <Tree position={[28.3, 0, 41.9]} />
-      <Tree position={[29.6, 0, 41.3]} />
-      <Tree position={[31.9, 0, 42.8]} />
-      <Tree position={[33.9, 0, 40.5]} />
-      <Tree position={[35.7, 0, 41.7]} />
-      <Tree position={[37.4, 0, 41.9]} />
-      <Tree position={[39.8, 0, 40.4]} />
-      <Tree position={[41.7, 0, 39.7]} />
-      <Tree position={[43.4, 0, 42.3]} />
-      <Tree position={[45.4, 0, 41.2]} />
-      <Tree position={[47.6, 0, 42.7]} />
-      <Tree position={[22.9, 0, 43.8]} />
-      <Tree position={[25.6, 0, 44.9]} />
-      <Tree position={[28.3, 0, 43.4]} />
-      <Tree position={[30.4, 0, 45.6]} />
-      <Tree position={[32.7, 0, 44.8]} />
-      <Tree position={[34.9, 0, 43.7]} />
-      <Tree position={[36.4, 0, 42.9]} />
-      <Tree position={[38.7, 0, 45.1]} />
-      <Tree position={[40.1, 0, 44.2]} />
-      <Tree position={[42.6, 0, 43.9]} />
-      <Tree position={[44.8, 0, 43.6]} />
-      <Tree position={[46.8, 0, 45.4]} />
-      <Tree position={[48.9, 0, 44.3]} />
-      <Tree position={[23.8, 0, 47.2]} />
-      <Tree position={[26.5, 0, 45.7]} />
-      <Tree position={[28.9, 0, 48.1]} />
-      <Tree position={[30.8, 0, 47.2]} />
-      <Tree position={[32.6, 0, 46.8]} />
-      <Tree position={[34.2, 0, 46.3]} />
-      <Tree position={[36.8, 0, 48.4]} />
-      <Tree position={[38.6, 0, 47.8]} />
-      <Tree position={[40.9, 0, 46.7]} />
-      <Tree position={[42.4, 0, 45.9]} />
-      <Tree position={[44.7, 0, 48.2]} />
-      <Tree position={[46.7, 0, 47.1]} />
-      <Tree position={[48.4, 0, 48.6]} />
+      {/* All trees rendered with instancing for better performance */}
+      <InstancedTrees />
 
       {/* Central Fountain */}
       <CentralFountain position={[0, 0, 0]} />
@@ -866,7 +918,7 @@ export default function GameScene({ onPOITrigger }) {
 
       {/* NPCs with random pathing */}
       {Array.from({ length: 4 }).map((_, i) => (
-        <NPC 
+        <NPC
           key={`npc-${i}`}
           id={`npc-${i}`}
           obstacles={OBSTACLES}
@@ -875,7 +927,12 @@ export default function GameScene({ onPOITrigger }) {
       ))}
 
       {/* Player with physics and camera */}
-      <Player pois={POIS} onPOITrigger={onPOITrigger} obstacles={OBSTACLES} npcData={npcData} />
+      <Player
+        pois={POIS}
+        onPOITrigger={onPOITrigger}
+        obstacles={OBSTACLES}
+        npcData={npcData}
+      />
     </>
   );
 }
