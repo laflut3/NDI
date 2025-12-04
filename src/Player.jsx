@@ -313,6 +313,22 @@ export default function Player({ pois, onPOITrigger }) {
                 userData={{ baseOpacity: 0.9 }}
               />
             </mesh>
+            {/* Point lights for glow effect - left */}
+            <pointLight
+              position={[-0.4, 0, 0]}
+              color="#ff6600"
+              intensity={2 * flameOpacity.current}
+              distance={5}
+              decay={2}
+            />
+            {/* Point lights for glow effect - right */}
+            <pointLight
+              position={[0.4, 0, 0]}
+              color="#ff6600"
+              intensity={2 * flameOpacity.current}
+              distance={5}
+              decay={2}
+            />
           </group>
         )}
       </mesh>
