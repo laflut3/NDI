@@ -1,4 +1,4 @@
-export default function Overlay({ poiData, onClose }) {
+export default function Overlay({ poiData, onClose, onContinue }) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-slideUp">
@@ -42,7 +42,10 @@ export default function Overlay({ poiData, onClose }) {
 
           {/* Action button */}
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (onContinue) onContinue(poiData)
+              else onClose()
+            }}
             className="mt-8 w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             style={{
               background: `linear-gradient(135deg, ${poiData.color} 0%, ${poiData.color}cc 100%)`
