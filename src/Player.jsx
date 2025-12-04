@@ -15,6 +15,11 @@ export default function Player({ pois, onPOITrigger }) {
   const [isBoosting, setIsBoosting] = useState(false);
   const flameOpacity = useRef(0);
 
+  // Trail state
+  const [trailPoints, setTrailPoints] = useState([]);
+  const maxTrailLength = 50;
+  const trailTimer = useRef(0);
+
   // Track which POIs have been visited to prevent spam
   const visitedPOIs = useRef(new Set());
   const gamePaused = useRef(false);
@@ -130,6 +135,53 @@ export default function Player({ pois, onPOITrigger }) {
     meshRef.current.position.set(newPos[0], newPos[1], newPos[2]);
     meshRef.current.rotation.y = rotation;
 
+    // Update trail points
+    trailTimer.current += delta;
+    if (trailTimer.current > 0.05 && velocity.current.length() > 0.5) {
+      trailTimer.current = 0;
+      
+      // Calculate wheel positions based on current position and rotation
+      const wheelOffset = 0.9;
+      const wheelFrontBack = 0.8;
+      
+      const cos = Math.cos(rotation);
+      const sin = Math.sin(rotation);
+      
+      // Front left and right wheels
+      const frontLeftWheel = {
+        x: newPos[0] + (-wheelOffset * cos - (-wheelFrontBack) * sin),
+        z: newPos[2] + (-wheelOffset * sin + (-wheelFrontBack) * cos),
+      };
+      const frontRightWheel = {
+        x: newPos[0] + (wheelOffset * cos - (-wheelFrontBack) * sin),
+        z: newPos[2] + (wheelOffset * sin + (-wheelFrontBack) * cos),
+      };
+      
+      // Rear left and right wheels
+      const rearLeftWheel = {
+        x: newPos[0] + (-wheelOffset * cos - wheelFrontBack * sin),
+        z: newPos[2] + (-wheelOffset * sin + wheelFrontBack * cos),
+      };
+      const rearRightWheel = {
+        x: newPos[0] + (wheelOffset * cos - wheelFrontBack * sin),
+        z: newPos[2] + (wheelOffset * sin + wheelFrontBack * cos),
+      };
+      
+      setTrailPoints((prev) => {
+        const newTrail = [
+          ...prev,
+          { left: frontLeftWheel, right: frontRightWheel, age: 0 },
+          { left: rearLeftWheel, right: rearRightWheel, age: 0 }
+        ];
+        return newTrail.slice(-maxTrailLength);
+      });
+    }
+    
+    // Age trail points
+    setTrailPoints((prev) =>
+      prev.map((point) => ({ ...point, age: point.age + delta }))
+    );
+
     // Smooth camera follow (isometric view)
     const cameraOffset = new THREE.Vector3(0, 20, 20);
     const targetCameraPos = new THREE.Vector3(
@@ -172,6 +224,37 @@ export default function Player({ pois, onPOITrigger }) {
 
   return (
     <group>
+      {/* Wheel trails */}
+      {trailPoints.map((point, index) => {
+        const opacity = Math.max(0, 1 - point.age / 2);
+        const size = 0.15 * (1 - point.age / 3);
+        
+        if (opacity <= 0 || size <= 0) return null;
+        
+        return (
+          <group key={index}>
+            {/* Left wheel trail */}
+            <mesh position={[point.left.x, 0.05, point.left.z]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[size, 8]} />
+              <meshBasicMaterial
+                color="#1a1a1a"
+                transparent
+                opacity={opacity * 0.6}
+              />
+            </mesh>
+            {/* Right wheel trail */}
+            <mesh position={[point.right.x, 0.05, point.right.z]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[size, 8]} />
+              <meshBasicMaterial
+                color="#1a1a1a"
+                transparent
+                opacity={opacity * 0.6}
+              />
+            </mesh>
+          </group>
+        );
+      })}
+
       {/* The Repair Truck */}
       <mesh ref={meshRef} castShadow>
         {/* Main body - elevated */}
