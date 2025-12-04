@@ -128,9 +128,15 @@ function App() {
         <div className="absolute right-6 top-20">
           <button
             onClick={() => setShowBadges(true)}
-            className="bg-white/10 text-white px-3 py-1 rounded-md hover:bg-white/20"
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-lg flex items-center gap-2 font-semibold"
           >
-            Badges
+            <span className="text-xl">🏆</span>
+            <span>Badges</span>
+            {badges.length > 0 && (
+              <span className="bg-white text-orange-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                {badges.length}
+              </span>
+            )}
           </button>
         </div>
         <p className="text-white/90 text-center mt-2 text-sm">
@@ -188,7 +194,17 @@ function App() {
           onContinue={(poi) => {
             // Only award XP once per POI
             if (!completedPOIs.includes(poi.id)) {
-              const pointsCount = poi.content?.points?.length || 0
+              // Calculate XP based on POI type
+              let pointsCount = 0
+              if (poi.content?.points) {
+                pointsCount = poi.content.points.length
+              } else if (poi.content?.facts) {
+                pointsCount = poi.content.facts.length
+              } else if (poi.type === 'quiz') {
+                pointsCount = 5 // Fixed XP for quiz completion
+              } else if (poi.type === 'chatbot') {
+                pointsCount = 3 // Fixed XP for chatbot interaction
+              }
               const award = pointsCount * XP_PER_POINT
 
               // Compute new progress and level ups
@@ -209,36 +225,43 @@ function App() {
 
               // Award badges: topic badge for this POI, and tier badges based on total completed
               const TOPIC_BADGES = {
-                waste: {
-                  id: 'badge_waste',
-                  name: 'Stop Waste Badge',
-                  icon: '♻️',
-                  description: 'Committed to reducing e-waste by choosing reconditioned devices.'
+                quiz1: {
+                  id: 'badge_quiz_master',
+                  name: 'Quiz Master',
+                  icon: '📝',
+                  description: 'Completed quiz challenges on digital independence.'
                 },
-                opensource: {
-                  id: 'badge_open_source',
-                  name: 'Open Source Advocate',
-                  icon: '🐧',
-                  description: 'Supports open source solutions and software freedom.'
+                chatbot: {
+                  id: 'badge_tech_explorer',
+                  name: 'Tech Explorer',
+                  icon: '🤖',
+                  description: 'Engaged with the digital assistant.'
                 },
-                privacy: {
-                  id: 'badge_privacy',
-                  name: 'Privacy Protector',
-                  icon: '🔒',
-                  description: 'Takes steps to protect personal data and privacy.'
+                funfact: {
+                  id: 'badge_knowledge_seeker',
+                  name: 'Knowledge Seeker',
+                  icon: '💡',
+                  description: 'Discovered amazing tech facts.'
                 }
               }
 
               const TIER_BADGES = [
-                { count: 1, id: 'tier_1', name: 'Emerging Advocate', icon: '🌱', description: 'Completed 1 mission.' },
-                { count: 2, id: 'tier_2', name: 'Eco Advocate', icon: '🌿', description: 'Completed 2 missions.' },
-                { count: 3, id: 'tier_3', name: 'Digital Steward', icon: '🏅', description: 'Completed 3 missions.' }
+                { count: 1, id: 'tier_1', name: 'Digital Novice', icon: '🌱', description: 'Completed your first mission!' },
+                { count: 2, id: 'tier_2', name: 'Tech Enthusiast', icon: '🌿', description: 'Completed 2 missions.' },
+                { count: 3, id: 'tier_3', name: 'Digital Advocate', icon: '🏅', description: 'Completed 3 missions.' },
+                { count: 4, id: 'tier_4', name: 'Tech Champion', icon: '⭐', description: 'Completed 4 missions.' },
+                { count: 6, id: 'tier_5', name: 'Digital Master', icon: '👑', description: 'Completed all missions!' }
               ]
 
               const newBadges = []
 
-              // topic badge
-              const topic = TOPIC_BADGES[poi.id]
+              // Award topic badge based on POI type (not specific ID)
+              let badgeKey = poi.id
+              if (poi.type === 'quiz' && !badges.find(b => b.id === 'badge_quiz_master')) {
+                badgeKey = 'quiz1' // Use first quiz for badge lookup
+              }
+
+              const topic = TOPIC_BADGES[badgeKey]
               if (topic && !badges.find(b => b.id === topic.id)) {
                 newBadges.push({ ...topic, earnedAt: Date.now() })
               }

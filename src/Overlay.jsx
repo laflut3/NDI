@@ -115,33 +115,101 @@ export default function Overlay({ poiData, onClose, onContinue }) {
 function QuizContent({ poiData }) {
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200">
-        <p className="text-gray-700 text-lg leading-relaxed mb-4">
-          {poiData.content.description}
-        </p>
-        <div className="flex items-center gap-3 text-blue-600 bg-blue-50 p-4 rounded-lg">
-          <span className="text-2xl">ℹ️</span>
-          <p className="text-sm">{poiData.content.message}</p>
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 rounded-2xl text-white">
+        <div className="absolute top-0 right-0 text-9xl opacity-10 transform translate-x-4 -translate-y-4">
+          📝
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-3xl">
+              🎯
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold">Challenge Accepted!</h3>
+              <p className="text-white/90 text-sm">Test your digital independence knowledge</p>
+            </div>
+          </div>
+          <p className="text-white/95 leading-relaxed">
+            {poiData.content.description}
+          </p>
         </div>
       </div>
 
-      {/* Placeholder for quiz UI */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-4 bg-gray-100 rounded-lg text-center text-gray-400 border-2 border-dashed border-gray-300">
-          <span className="text-xl">📚</span>
-          <p className="text-xs mt-2">Quiz Question</p>
+      {/* Quiz Preview Cards */}
+      <div className="grid grid-cols-1 gap-4">
+        {/* Question Preview */}
+        <div className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0">
+              ?
+            </div>
+            <div className="flex-1">
+              <h4 className="text-lg font-bold text-gray-800 mb-2">Interactive Questions</h4>
+              <p className="text-gray-600 text-sm">Multiple choice questions about open source, sustainability, and digital rights</p>
+              <div className="mt-3 flex items-center gap-2 text-blue-600 text-xs font-semibold">
+                <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                <span>Ready to start</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="p-4 bg-gray-100 rounded-lg text-center text-gray-400 border-2 border-dashed border-gray-300">
-          <span className="text-xl">✅</span>
-          <p className="text-xs mt-2">Answer Options</p>
+
+        {/* Progress Tracking */}
+        <div className="group relative bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 hover:border-green-400 transition-all hover:shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg flex-shrink-0">
+              📊
+            </div>
+            <div className="flex-1">
+              <h4 className="text-lg font-bold text-gray-800 mb-2">Track Your Progress</h4>
+              <p className="text-gray-600 text-sm">Earn XP and unlock badges as you complete challenges</p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="bg-white/80 p-2 rounded-lg text-center">
+                  <div className="text-xl font-bold text-green-600">+125</div>
+                  <div className="text-xs text-gray-600">XP Reward</div>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg text-center">
+                  <div className="text-xl">🏆</div>
+                  <div className="text-xs text-gray-600">Badges</div>
+                </div>
+                <div className="bg-white/80 p-2 rounded-lg text-center">
+                  <div className="text-xl">📈</div>
+                  <div className="text-xs text-gray-600">Levels</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="p-4 bg-gray-100 rounded-lg text-center text-gray-400 border-2 border-dashed border-gray-300">
-          <span className="text-xl">🏆</span>
-          <p className="text-xs mt-2">Score Tracking</p>
+
+        {/* Competitive Element */}
+        <div className="group relative bg-gradient-to-br from-orange-50 to-red-50 p-6 rounded-xl border-2 border-orange-200 hover:border-orange-400 transition-all hover:shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg flex-shrink-0">
+              ⏱️
+            </div>
+            <div className="flex-1">
+              <h4 className="text-lg font-bold text-gray-800 mb-2">Beat the Clock</h4>
+              <p className="text-gray-600 text-sm">Answer quickly for bonus points and climb the leaderboard</p>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex-1 bg-white/80 h-2 rounded-full overflow-hidden">
+                  <div className="h-full w-3/4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse"></div>
+                </div>
+                <span className="text-sm font-bold text-orange-600">Ready!</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="p-4 bg-gray-100 rounded-lg text-center text-gray-400 border-2 border-dashed border-gray-300">
-          <span className="text-xl">⏱️</span>
-          <p className="text-xs mt-2">Timer</p>
+      </div>
+
+      {/* Coming Soon Notice */}
+      <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-xl border-2 border-purple-300">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🚀</span>
+          <div>
+            <p className="text-purple-900 font-semibold">Quiz System Coming Soon!</p>
+            <p className="text-purple-700 text-sm">{poiData.content.message}</p>
+          </div>
         </div>
       </div>
     </div>
