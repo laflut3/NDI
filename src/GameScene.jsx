@@ -121,13 +121,17 @@ function Tree({ position }) {
 // Enhanced building component with windows
 function Building({
   position,
+  rotation = 0,
   width = 4,
   height = 6,
   depth = 4,
   color = "#888888",
 }) {
   return (
-    <group position={[position[0], height / 2, position[2]]}>
+    <group
+      position={[position[0], height / 2, position[2]]}
+      rotation={[0, rotation, 0]}
+    >
       {/* Main building */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[width, height, depth]} />
@@ -441,12 +445,32 @@ export default function GameScene({ onPOITrigger }) {
       <Road position={[-25, 0.05, 0]} rotation={Math.PI / 2} length={50} />
 
       {/* Buildings - School Campus */}
+      {/* Top Left */}
+      <Building
+        position={[-15, 0, -30]}
+        rotation={Math.PI / 6}
+        width={12}
+        height={7}
+        depth={10}
+        color="#b8860b"
+      />
+      {/* Bottom Left */}
       <Building
         position={[-30, 0, 30]}
+        rotation={Math.PI / 8}
         width={8}
         height={8}
         depth={12}
         color="#b8860b"
+      />
+      {/* Top Right */}
+      <Building
+        position={[10, 0, -10]}
+        rotation={-Math.PI / 5}
+        width={6}
+        height={10}
+        depth={6}
+        color="#daa520"
       />
       <Building
         position={[18, 0, 8]}
@@ -454,20 +478,6 @@ export default function GameScene({ onPOITrigger }) {
         height={6}
         depth={8}
         color="#cd853f"
-      />
-      <Building
-        position={[10, 0, -10]}
-        width={6}
-        height={10}
-        depth={6}
-        color="#daa520"
-      />
-      <Building
-        position={[-15, 0, -30]}
-        width={12}
-        height={7}
-        depth={10}
-        color="#b8860b"
       />
 
       {/* Trees scattered around */}
