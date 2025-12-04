@@ -6,7 +6,7 @@ import * as THREE from "three";
 export default function Player({ pois, onPOITrigger }) {
   const meshRef = useRef();
   const flamesRef = useRef();
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
 
   // Physics state
   const [position, setPosition] = useState([0, 0.75, 0]);
@@ -14,6 +14,10 @@ export default function Player({ pois, onPOITrigger }) {
   const velocity = useRef(new THREE.Vector3(0, 0, 0));
   const [isBoosting, setIsBoosting] = useState(false);
   const flameOpacity = useRef(0);
+
+  // Raycaster for collision detection
+  const raycaster = useRef(new THREE.Raycaster());
+  const collisionObjects = useRef([]);
 
   // Trail state
   const [trailPoints, setTrailPoints] = useState([]);
@@ -27,6 +31,75 @@ export default function Player({ pois, onPOITrigger }) {
 
   // Get keyboard state
   const [, getKeys] = useKeyboardControls();
+
+  // Collect collidable objects from the scene
+  useEffect(() => {
+    if (!scene) return;
+
+    const collectCollidableObjects = () => {
+      const objects = [];
+      scene.traverse((child) => {
+        // Filter out ground, POI markers, trails, and the player itself
+        if (
+          child.isMesh &&
+          child !== meshRef.current &&
+          child.parent !== meshRef.current &&
+          child.parent?.parent !== meshRef.current &&
+          child.parent?.parent?.parent !== meshRef.current &&
+          child.geometry
+        ) {
+          // Get world position to properly filter objects
+          const worldPos = new THREE.Vector3();
+          child.getWorldPosition(worldPos);
+
+          // Exclude ground plane (world Y close to 0)
+          if (Math.abs(worldPos.y) < 0.15) {
+            return;
+          }
+
+          // Check if this is part of a POI marker (by checking parent chain)
+          let isPOI = false;
+          let parent = child.parent;
+          while (parent && parent !== scene) {
+            // POI markers are typically at y=0.5 and are spheres
+            if (
+              parent.position?.y === 0.5 &&
+              child.geometry?.type === "SphereGeometry"
+            ) {
+              isPOI = true;
+              break;
+            }
+            parent = parent.parent;
+          }
+
+          // Check if it's a fountain (at position 0,0,0)
+          const parentPos = child.parent?.position;
+          const isFountain =
+            parentPos &&
+            Math.abs(parentPos.x) < 0.1 &&
+            Math.abs(parentPos.z) < 0.1;
+
+          // Check if it's a trail marker (small circles on ground)
+          const isTrail =
+            child.geometry?.type === "CircleGeometry" && worldPos.y < 0.15;
+
+          if (!isPOI && !isFountain && !isTrail) {
+            objects.push(child);
+          }
+        }
+      });
+      collisionObjects.current = objects;
+      console.log(`Collected ${objects.length} collidable objects`);
+    };
+
+    // Initial collection
+    collectCollidableObjects();
+
+    // Re-collect periodically to catch dynamically added objects
+    const interval = setInterval(collectCollidableObjects, 2000);
+
+    return () => clearInterval(interval);
+  }, [scene]);
 
   // Reset visited POI when modal closes
   useEffect(() => {
@@ -116,54 +189,51 @@ export default function Player({ pois, onPOITrigger }) {
       velocity.current.setLength(maxSpeed);
     }
 
-    // Update position
+    // Calculate potential new position
     const newPos = [
       position[0] + velocity.current.x * delta,
       0.75,
       position[2] + velocity.current.z * delta,
     ];
 
-    // Define all collidable objects (buildings, trees - NOT fountain at spawn)
-    const obstacles = [
-      // Buildings
-      { x: -10, z: 0, width: 8, depth: 12 },
-      { x: 10, z: 5, width: 10, depth: 8 },
-      { x: 5, z: -10, width: 6, depth: 6 },
-      { x: -15, z: -25, width: 12, depth: 10 },
-      // Trees (approximate circular collision as squares)
-      { x: 8, z: 12, width: 2.5, depth: 2.5 },
-      { x: -12, z: 10, width: 2.5, depth: 2.5 },
-      { x: 18, z: -8, width: 2.5, depth: 2.5 },
-      { x: -8, z: -12, width: 2.5, depth: 2.5 },
-      { x: 30, z: 15, width: 2.5, depth: 2.5 },
-      { x: -30, z: -20, width: 2.5, depth: 2.5 },
-      { x: 25, z: -25, width: 2.5, depth: 2.5 },
-      { x: -18, z: 18, width: 2.5, depth: 2.5 },
-      { x: 12, z: -30, width: 2.5, depth: 2.5 },
-      { x: -25, z: 15, width: 2.5, depth: 2.5 },
-      { x: 32, z: -10, width: 2.5, depth: 2.5 },
-      { x: -32, z: 8, width: 2.5, depth: 2.5 },
-    ];
-
-    // Check collision with obstacles
-    const playerRadius = 1.5; // Approximate player size
+    // Raycast-based collision detection
     let colliding = false;
+    const playerRadius = 1.5;
 
-    for (const obstacle of obstacles) {
-      // AABB collision detection
-      const obstacleLeft = obstacle.x - obstacle.width / 2;
-      const obstacleRight = obstacle.x + obstacle.width / 2;
-      const obstacleTop = obstacle.z - obstacle.depth / 2;
-      const obstacleBottom = obstacle.z + obstacle.depth / 2;
+    if (
+      collisionObjects.current.length > 0 &&
+      velocity.current.length() > 0.01
+    ) {
+      // Cast rays in multiple directions around the player
+      const rayDirections = [
+        new THREE.Vector3(1, 0, 0), // Right
+        new THREE.Vector3(-1, 0, 0), // Left
+        new THREE.Vector3(0, 0, 1), // Forward
+        new THREE.Vector3(0, 0, -1), // Backward
+        new THREE.Vector3(0.707, 0, 0.707), // Diagonal FR
+        new THREE.Vector3(-0.707, 0, 0.707), // Diagonal FL
+        new THREE.Vector3(0.707, 0, -0.707), // Diagonal BR
+        new THREE.Vector3(-0.707, 0, -0.707), // Diagonal BL
+      ];
 
-      if (
-        newPos[0] + playerRadius > obstacleLeft &&
-        newPos[0] - playerRadius < obstacleRight &&
-        newPos[2] + playerRadius > obstacleTop &&
-        newPos[2] - playerRadius < obstacleBottom
-      ) {
-        colliding = true;
-        break;
+      const rayOrigin = new THREE.Vector3(newPos[0], newPos[1], newPos[2]);
+
+      for (const direction of rayDirections) {
+        raycaster.current.set(rayOrigin, direction);
+        raycaster.current.far = playerRadius;
+
+        const intersections = raycaster.current.intersectObjects(
+          collisionObjects.current,
+          false
+        );
+
+        if (
+          intersections.length > 0 &&
+          intersections[0].distance < playerRadius
+        ) {
+          colliding = true;
+          break;
+        }
       }
     }
 
@@ -183,24 +253,24 @@ export default function Player({ pois, onPOITrigger }) {
     trailTimer.current += delta;
     if (trailTimer.current > 0.05 && velocity.current.length() > 0.5) {
       trailTimer.current = 0;
-      
+
       // Calculate wheel positions based on current position and rotation
       const wheelOffset = 0.9;
       const wheelFrontBack = 0.8;
-      
+
       const cos = Math.cos(rotation);
       const sin = Math.sin(rotation);
-      
+
       // Front left and right wheels
       const frontLeftWheel = {
-        x: newPos[0] + (-wheelOffset * cos - (-wheelFrontBack) * sin),
-        z: newPos[2] + (-wheelOffset * sin + (-wheelFrontBack) * cos),
+        x: newPos[0] + (-wheelOffset * cos - -wheelFrontBack * sin),
+        z: newPos[2] + (-wheelOffset * sin + -wheelFrontBack * cos),
       };
       const frontRightWheel = {
-        x: newPos[0] + (wheelOffset * cos - (-wheelFrontBack) * sin),
-        z: newPos[2] + (wheelOffset * sin + (-wheelFrontBack) * cos),
+        x: newPos[0] + (wheelOffset * cos - -wheelFrontBack * sin),
+        z: newPos[2] + (wheelOffset * sin + -wheelFrontBack * cos),
       };
-      
+
       // Rear left and right wheels
       const rearLeftWheel = {
         x: newPos[0] + (-wheelOffset * cos - wheelFrontBack * sin),
@@ -210,17 +280,17 @@ export default function Player({ pois, onPOITrigger }) {
         x: newPos[0] + (wheelOffset * cos - wheelFrontBack * sin),
         z: newPos[2] + (wheelOffset * sin + wheelFrontBack * cos),
       };
-      
+
       setTrailPoints((prev) => {
         const newTrail = [
           ...prev,
           { left: frontLeftWheel, right: frontRightWheel, age: 0 },
-          { left: rearLeftWheel, right: rearRightWheel, age: 0 }
+          { left: rearLeftWheel, right: rearRightWheel, age: 0 },
         ];
         return newTrail.slice(-maxTrailLength);
       });
     }
-    
+
     // Age trail points
     setTrailPoints((prev) =>
       prev.map((point) => ({ ...point, age: point.age + delta }))
@@ -272,13 +342,16 @@ export default function Player({ pois, onPOITrigger }) {
       {trailPoints.map((point, index) => {
         const opacity = Math.max(0, 1 - point.age / 2);
         const size = 0.15 * (1 - point.age / 3);
-        
+
         if (opacity <= 0 || size <= 0) return null;
-        
+
         return (
           <group key={index}>
             {/* Left wheel trail */}
-            <mesh position={[point.left.x, 0.05, point.left.z]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh
+              position={[point.left.x, 0.05, point.left.z]}
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
               <circleGeometry args={[size, 8]} />
               <meshBasicMaterial
                 color="#1a1a1a"
@@ -287,7 +360,10 @@ export default function Player({ pois, onPOITrigger }) {
               />
             </mesh>
             {/* Right wheel trail */}
-            <mesh position={[point.right.x, 0.05, point.right.z]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh
+              position={[point.right.x, 0.05, point.right.z]}
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
               <circleGeometry args={[size, 8]} />
               <meshBasicMaterial
                 color="#1a1a1a"
