@@ -320,6 +320,49 @@ function StickMan({ color }) {
   )
 }
 
+// Stick man figure for chatbot POI
+function StickMan({ color }) {
+  return (
+    <group position={[0, 1.5, 0]}>
+      {/* Head */}
+      <mesh position={[0, 1.8, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Body */}
+      <mesh position={[0, 0.9, 0]}>
+        <cylinderGeometry args={[0.15, 0.15, 1.5, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Left arm */}
+      <mesh position={[-0.4, 1.2, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.8, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Right arm */}
+      <mesh position={[0.4, 1.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.8, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Left leg */}
+      <mesh position={[-0.2, -0.3, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.9, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Right leg */}
+      <mesh position={[0.2, -0.3, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.9, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+    </group>
+  )
+}
+
 // POI marker with glowing effect
 function POIMarker({ data }) {
   const meshRef = useRef()
