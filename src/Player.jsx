@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 
-export default function Player({ pois, onPOITrigger }) {
+export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map() }) {
   const meshRef = useRef();
   const flamesRef = useRef();
   const { camera } = useThree();
@@ -118,8 +118,8 @@ export default function Player({ pois, onPOITrigger }) {
       position[2] + velocity.current.z * delta,
     ];
 
-    // Define all collidable objects (buildings, trees - NOT fountain at spawn)
-    const obstacles = [
+    // Use obstacles from props if provided, otherwise use local defaults
+    const collidableObstacles = obstacles.length > 0 ? obstacles : [
       // Buildings
       { x: -10, z: 0, width: 8, depth: 12 },
       { x: 10, z: 5, width: 10, depth: 8 },
@@ -144,7 +144,7 @@ export default function Player({ pois, onPOITrigger }) {
     const playerRadius = 1.5; // Approximate player size
     let colliding = false;
 
-    for (const obstacle of obstacles) {
+    for (const obstacle of collidableObstacles) {
       // AABB collision detection
       const obstacleLeft = obstacle.x - obstacle.width / 2;
       const obstacleRight = obstacle.x + obstacle.width / 2;
@@ -159,6 +159,27 @@ export default function Player({ pois, onPOITrigger }) {
       ) {
         colliding = true;
         break;
+      }
+    }
+
+    // Check collision with NPCs using circle collision
+    if (!colliding && npcData.size > 0) {
+      const playerCollisionRadius = playerRadius;
+      for (const [npcId, npc] of npcData) {
+        if (npc.isDead) continue; // Skip dead NPCs
+        
+        const distance = Math.hypot(
+          newPos[0] - npc.position[0],
+          newPos[2] - npc.position[2]
+        );
+        const minDistance = playerCollisionRadius + npc.radius;
+        
+        if (distance < minDistance) {
+          // Kill the NPC
+          window.dispatchEvent(new CustomEvent(`npc-collision-${npcId}`));
+          colliding = true;
+          break;
+        }
       }
     }
 
@@ -215,6 +236,7 @@ export default function Player({ pois, onPOITrigger }) {
   });
 
   return (
+    <>
     <group>
       {/* The Repair Truck */}
       <mesh ref={meshRef} castShadow>
@@ -377,5 +399,6 @@ export default function Player({ pois, onPOITrigger }) {
         )}
       </mesh>
     </group>
+    </>
   );
 }
