@@ -10,6 +10,7 @@ const keyboardMap = [
   { name: 'backward', keys: ['ArrowDown', 'KeyS'] },
   { name: 'left', keys: ['ArrowLeft', 'KeyA'] },
   { name: 'right', keys: ['ArrowRight', 'KeyD'] },
+  { name: 'boost', keys: ['ShiftLeft', 'ShiftRight', 'Space'] },
 ]
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
           Digital Independence Mission
         </h1>
         <p className="text-white/90 text-center mt-2 text-sm">
-          Drive your Repair Truck to the colored markers to learn about tech freedom!
+          Drive your Repair Truck around the campus. Take quizzes, chat with the assistant, and discover fun facts!
         </p>
       </div>
 
@@ -36,24 +37,25 @@ function App() {
           <p>↓ S - Backward</p>
           <p>← A - Turn Left</p>
           <p>→ D - Turn Right</p>
+          <p className="text-yellow-300 font-semibold">⚡ SHIFT/SPACE - Turbo Boost</p>
         </div>
       </div>
 
       {/* POI Legend */}
       <div className="absolute bottom-0 right-0 z-10 bg-black/60 backdrop-blur-sm p-4 rounded-tl-xl">
-        <p className="text-white text-sm font-semibold mb-2">Mission Objectives:</p>
+        <p className="text-white text-sm font-semibold mb-2">Points of Interest:</p>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-red-500 shadow-lg shadow-red-500/50"></div>
-            <span className="text-white/80 text-xs">Stop Waste</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50"></div>
-            <span className="text-white/80 text-xs">Go Open Source</span>
+            <div className="w-4 h-4 rounded-full bg-white shadow-lg shadow-white/50"></div>
+            <span className="text-white/80 text-xs">Quiz Stations (4)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50"></div>
-            <span className="text-white/80 text-xs">Data Privacy</span>
+            <span className="text-white/80 text-xs">Digital Assistant</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50"></div>
+            <span className="text-white/80 text-xs">Fun Facts</span>
           </div>
         </div>
       </div>

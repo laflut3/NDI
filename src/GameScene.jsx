@@ -3,54 +3,93 @@ import Player from './Player'
 
 // POI data with positions and content
 export const POIS = [
+  // Quiz POIs (White circles) - 4 of them
   {
-    id: 'waste',
+    id: 'quiz1',
+    type: 'quiz',
     position: [20, 0.5, 20],
-    color: '#ef4444',
-    title: 'Stop Waste',
-    icon: '♻️',
+    color: '#ffffff',
+    title: 'Quiz Station 1',
+    icon: '📝',
     content: {
-      heading: 'Stop Waste: Choose Reconditioned Computers',
-      points: [
-        'Buying new electronics creates massive e-waste and carbon emissions',
-        'Reconditioned computers work just as well for 50-70% less money',
-        'One refurbished laptop saves 190kg of CO2 emissions',
-        'Extend device lifespans through repair instead of replacement',
-        'Support the circular economy and reduce environmental impact'
-      ]
+      heading: 'Quiz Challenge: Digital Independence',
+      description: 'Test your knowledge about technology and sustainability!',
+      message: 'Quiz functionality will be integrated soon. Get ready to answer questions about open source, e-waste, and digital rights!'
     }
   },
   {
-    id: 'opensource',
-    position: [-20, 0.5, -15],
-    color: '#3b82f6',
-    title: 'Go Open Source',
-    icon: '🐧',
+    id: 'quiz2',
+    type: 'quiz',
+    position: [-20, 0.5, 20],
+    color: '#ffffff',
+    title: 'Quiz Station 2',
+    icon: '📝',
     content: {
-      heading: 'Go Open Source: Free Your Computer',
-      points: [
-        'Replace Windows with Linux - it\'s free, fast, and respects your freedom',
-        'Open source means transparent code anyone can inspect and improve',
-        'No forced updates, no telemetry, no vendor lock-in',
-        'Revive old computers with lightweight Linux distributions',
-        'Join a global community building software for users, not profits'
-      ]
+      heading: 'Quiz Challenge: Tech Literacy',
+      description: 'How much do you know about your digital rights?',
+      message: 'Quiz functionality will be integrated soon. Prepare to test your tech knowledge!'
     }
   },
   {
-    id: 'privacy',
-    position: [15, 0.5, -20],
-    color: '#facc15',
-    title: 'Data Privacy',
-    icon: '🔒',
+    id: 'quiz3',
+    type: 'quiz',
+    position: [20, 0.5, -20],
+    color: '#ffffff',
+    title: 'Quiz Station 3',
+    icon: '📝',
     content: {
-      heading: 'Data Privacy: Take Back Control',
-      points: [
-        'Big Tech tracks everything you do to sell targeted ads',
-        'Your personal data is sold without your meaningful consent',
-        'Use privacy-respecting tools: Firefox, DuckDuckGo, Signal',
-        'Encrypt your communications and storage',
-        'Privacy is a fundamental right, not a luxury'
+      heading: 'Quiz Challenge: Sustainability',
+      description: 'Learn about the environmental impact of technology!',
+      message: 'Quiz functionality will be integrated soon. Challenge yourself!'
+    }
+  },
+  {
+    id: 'quiz4',
+    type: 'quiz',
+    position: [-20, 0.5, -20],
+    color: '#ffffff',
+    title: 'Quiz Station 4',
+    icon: '📝',
+    content: {
+      heading: 'Quiz Challenge: Privacy & Security',
+      description: 'Protect yourself in the digital world!',
+      message: 'Quiz functionality will be integrated soon. Stay tuned!'
+    }
+  },
+
+  // Chatbot POI (Yellow with stick man) - 1 of them
+  {
+    id: 'chatbot',
+    type: 'chatbot',
+    position: [-35, 0.5, 5],
+    color: '#fbbf24',
+    title: 'Digital Assistant',
+    icon: '🤖',
+    hasStickMan: true,
+    content: {
+      heading: 'Chat with Our Digital Guide',
+      description: 'Ask me anything about digital independence, open source, or tech sustainability!',
+      message: 'Chatbot integration coming soon. I will help answer all your questions about technology, privacy, and sustainability.'
+    }
+  },
+
+  // Fun Fact POI - 1 of them
+  {
+    id: 'funfact',
+    type: 'funfact',
+    position: [0, 0.5, -30],
+    color: '#a855f7',
+    title: 'Amazing Tech Fact',
+    icon: '💡',
+    content: {
+      heading: 'Did You Know?',
+      facts: [
+        '🌍 E-waste is the fastest-growing waste stream globally, with 50 million tons generated annually',
+        '💾 The first computer bug was an actual moth trapped in a Harvard computer in 1947',
+        '🔋 Smartphones have more computing power than the computers used for the Apollo 11 moon landing',
+        '♻️ Recycling 1 million laptops saves the energy equivalent to powering 3,500 homes for a year',
+        '🐧 Linux powers 96.3% of the world\'s top 1 million web servers',
+        '🔐 The average person has over 100 online accounts but uses only 7 different passwords'
       ]
     }
   }
@@ -98,6 +137,49 @@ function Road({ position, rotation = 0, width = 8, length = 30 }) {
   )
 }
 
+// Stick man figure for chatbot POI
+function StickMan({ color }) {
+  return (
+    <group position={[0, 1.5, 0]}>
+      {/* Head */}
+      <mesh position={[0, 1.8, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Body */}
+      <mesh position={[0, 0.9, 0]}>
+        <cylinderGeometry args={[0.15, 0.15, 1.5, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Left arm */}
+      <mesh position={[-0.4, 1.2, 0]} rotation={[0, 0, Math.PI / 4]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.8, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Right arm */}
+      <mesh position={[0.4, 1.2, 0]} rotation={[0, 0, -Math.PI / 4]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.8, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Left leg */}
+      <mesh position={[-0.2, -0.3, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.9, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+
+      {/* Right leg */}
+      <mesh position={[0.2, -0.3, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.9, 8]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+    </group>
+  )
+}
+
 // POI marker with glowing effect
 function POIMarker({ data }) {
   const meshRef = useRef()
@@ -110,7 +192,7 @@ function POIMarker({ data }) {
         <meshStandardMaterial
           color={data.color}
           emissive={data.color}
-          emissiveIntensity={0.8}
+          emissiveIntensity={data.type === 'quiz' ? 0.5 : 0.8}
         />
       </mesh>
 
@@ -124,6 +206,9 @@ function POIMarker({ data }) {
           wireframe
         />
       </mesh>
+
+      {/* Add stick man if this is a chatbot POI */}
+      {data.hasStickMan && <StickMan color="#1e293b" />}
 
       {/* Pulsing point light */}
       <pointLight
