@@ -9,7 +9,7 @@ export default function Player({ pois, onPOITrigger }) {
   const { camera, scene } = useThree();
 
   // Physics state
-  const [position, setPosition] = useState([0, 0.75, 0]);
+  const [position, setPosition] = useState([0, 0.75, 5]);
   const [rotation, setRotation] = useState(0);
   const velocity = useRef(new THREE.Vector3(0, 0, 0));
   const [isBoosting, setIsBoosting] = useState(false);
