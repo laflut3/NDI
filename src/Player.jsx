@@ -28,6 +28,7 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
   const visitedPOIs = useRef(new Set());
   const gamePaused = useRef(false);
   const playerNearPOI = useRef(new Map()); // Track if player is currently near each POI
+  const lastCollectionTime = useRef(0); // Timer for re-collecting collision objects
 
   // Get keyboard state
   const [, getKeys] = useKeyboardControls();
@@ -95,33 +96,77 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
         }
       });
       collisionObjects.current = objects;
-      console.log(`Collected ${objects.length} collidable objects`);
     };
 
     // Initial collection
     collectCollidableObjects();
-
-    // Re-collect periodically to catch dynamically added objects
-    const interval = setInterval(collectCollidableObjects, 2000);
-
-    return () => clearInterval(interval);
   }, [scene]);
-
-  // Reset visited POI when modal closes
-  useEffect(() => {
-    const checkGameState = setInterval(() => {
-      // If game was paused but no longer has an active modal, unpause
-      if (gamePaused.current) {
-        gamePaused.current = false;
-      }
-    }, 100);
-
-    return () => clearInterval(checkGameState);
-  }, []);
 
   // Physics and movement
   useFrame((state, delta) => {
-    if (!meshRef.current || gamePaused.current) return;
+    if (!meshRef.current) return;
+
+    // Re-collect collision objects every 2 seconds (replaces interval)
+    lastCollectionTime.current += delta;
+    if (lastCollectionTime.current >= 2) {
+      lastCollectionTime.current = 0;
+      const objects = [];
+      scene.traverse((child) => {
+        // Handle instanced meshes (like trees)
+        if (child.isInstancedMesh) {
+          objects.push(child);
+          return;
+        }
+
+        if (
+          child.isMesh &&
+          child !== meshRef.current &&
+          child.parent !== meshRef.current &&
+          child.parent?.parent !== meshRef.current &&
+          child.parent?.parent?.parent !== meshRef.current &&
+          child.geometry
+        ) {
+          const worldPos = new THREE.Vector3();
+          child.getWorldPosition(worldPos);
+
+          if (Math.abs(worldPos.y) < 0.15) return;
+
+          let isPOI = false;
+          let parent = child.parent;
+          while (parent && parent !== scene) {
+            if (
+              parent.position?.y === 0.5 &&
+              child.geometry?.type === "SphereGeometry"
+            ) {
+              isPOI = true;
+              break;
+            }
+            parent = parent.parent;
+          }
+
+          const parentPos = child.parent?.position;
+          const isFountain =
+            parentPos &&
+            Math.abs(parentPos.x) < 0.1 &&
+            Math.abs(parentPos.z) < 0.1;
+
+          const isTrail =
+            child.geometry?.type === "CircleGeometry" && worldPos.y < 0.15;
+
+          if (!isPOI && !isFountain && !isTrail) {
+            objects.push(child);
+          }
+        }
+      });
+      collisionObjects.current = objects;
+    }
+
+    // Reset game pause state (replaces interval check)
+    if (gamePaused.current) {
+      gamePaused.current = false;
+    }
+
+    if (gamePaused.current) return;
 
     const keys = getKeys();
 
