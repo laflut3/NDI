@@ -8,6 +8,7 @@ import QuestTracker from './QuestTracker'
 import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
+import NavigationArrow from './NavigationArrow'
 import { POIS } from './GameScene'
 
 // Define keyboard control mappings
@@ -64,6 +65,9 @@ function App() {
 
   // Locked POI notification
   const [lockedMessage, setLockedMessage] = useState(null)
+
+  // Player position for navigation arrow
+  const [playerPosition, setPlayerPosition] = useState([0, 0.75, 5])
 
   // Listen for locked POI events
   useEffect(() => {
@@ -230,6 +234,7 @@ function App() {
             onPOITrigger={setActivePOI}
             currentQuest={currentQuest}
             completedPOIs={completedPOIs}
+            onPlayerPositionUpdate={setPlayerPosition}
           />
         </Canvas>
       </KeyboardControls>
@@ -432,6 +437,27 @@ function App() {
         currentQuest={currentQuest}
         onQuestClick={handleQuestClick}
       />
+
+      {/* Navigation Arrow */}
+      {(() => {
+        // Map quest to POI ID
+        const QUEST_TO_POI = {
+          'quest1': 'quiz1',
+          'quest2': 'quiz2',
+          'quest3': 'quiz3',
+          'quest4': 'quiz4'
+        }
+        const targetPOI = POIS.find(poi => poi.id === QUEST_TO_POI[currentQuest])
+        const showNavigation = targetPOI && !completedPOIs.includes(targetPOI.id)
+
+        return showNavigation ? (
+          <NavigationArrow
+            playerPosition={playerPosition}
+            targetPosition={targetPOI.position}
+            targetName={targetPOI.title}
+          />
+        ) : null
+      })()}
 
       {/* Locked POI Notification */}
       {lockedMessage && (

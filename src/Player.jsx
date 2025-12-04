@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 
-export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map(), completedPOIs = [] }) {
+export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map(), completedPOIs = [], onPositionUpdate }) {
   const meshRef = useRef();
   const flamesRef = useRef();
   const { camera, scene } = useThree();
@@ -19,9 +19,9 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
   const raycaster = useRef(new THREE.Raycaster());
   const collisionObjects = useRef([]);
 
-  // Trail state
+  // Trail state (OPTIMIZED: reduced from 50 to 20 points)
   const [trailPoints, setTrailPoints] = useState([]);
-  const maxTrailLength = 50;
+  const maxTrailLength = 20;
   const trailTimer = useRef(0);
 
   // Track which POIs have been visited to prevent spam
@@ -29,6 +29,10 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
   const gamePaused = useRef(false);
   const playerNearPOI = useRef(new Map()); // Track if player is currently near each POI
   const lastCollectionTime = useRef(0); // Timer for re-collecting collision objects
+
+  // Throttle position updates for performance
+  const lastPositionUpdateTime = useRef(0);
+  const POSITION_UPDATE_INTERVAL = 100; // Update position callback every 100ms instead of every frame
 
   // Get keyboard state
   const [, getKeys] = useKeyboardControls();
@@ -312,6 +316,13 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
     // Simple boundary check (keep player in map)
     if (Math.abs(newPos[0]) < 45 && Math.abs(newPos[2]) < 45 && !colliding) {
       setPosition(newPos);
+
+      // Throttle position updates to parent (only update every 100ms)
+      const currentTime = Date.now();
+      if (onPositionUpdate && currentTime - lastPositionUpdateTime.current > POSITION_UPDATE_INTERVAL) {
+        onPositionUpdate(newPos);
+        lastPositionUpdateTime.current = currentTime;
+      }
     } else {
       // Bounce back if hitting boundary or obstacle
       velocity.current.multiplyScalar(-0.3);
@@ -321,9 +332,9 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
     meshRef.current.position.set(newPos[0], newPos[1], newPos[2]);
     meshRef.current.rotation.y = rotation;
 
-    // Update trail points
+    // Update trail points (OPTIMIZED: increased interval from 0.05 to 0.15)
     trailTimer.current += delta;
-    if (trailTimer.current > 0.05 && velocity.current.length() > 0.5) {
+    if (trailTimer.current > 0.15 && velocity.current.length() > 0.5) {
       trailTimer.current = 0;
 
       // Calculate wheel positions based on current position and rotation

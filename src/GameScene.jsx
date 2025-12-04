@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from "react";
 import { Matrix4 } from "three";
 import Player from "./Player";
 import NPC from "./NPC";
-import ArrowIndicator from "./ArrowIndicator";
 import { QUIZ_DATA } from "./quizData";
 
 // POI data with positions and content
@@ -746,7 +745,7 @@ const OBSTACLES = [
   { x: -32, z: 8, width: 2.5, depth: 2.5 },
 ];
 
-export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [] }) {
+export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [], onPlayerPositionUpdate }) {
   const [npcData, setNpcData] = useState(new Map());
 
   // Callback to collect NPC position and collision data from each NPC
@@ -758,30 +757,7 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
     });
   };
 
-  // Map quests to their corresponding POI IDs
-  const QUEST_TO_POI = {
-    'quest1': 'quiz1',
-    'quest2': 'quiz2',
-    'quest3': 'quiz3',
-    'quest4': 'quiz4'
-  };
-
-  // Get the POI for the current quest
-  const currentPOI = POIS.find(poi => poi.id === QUEST_TO_POI[currentQuest]);
-
-  // Only show arrow if there's a current POI and it's not completed yet
-  const showArrow = currentPOI && !completedPOIs.includes(currentPOI.id);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('🎮 GameScene Debug:', {
-      currentQuest,
-      completedPOIs,
-      currentPOI: currentPOI?.id,
-      showArrow,
-      poiPosition: currentPOI?.position
-    });
-  }, [currentQuest, completedPOIs, currentPOI, showArrow]);
+  // Removed arrow-related calculations for performance optimization
 
   return (
     <>
@@ -958,12 +934,10 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
         obstacles={OBSTACLES}
         npcData={npcData}
         completedPOIs={completedPOIs}
+        onPositionUpdate={onPlayerPositionUpdate}
       />
 
-      {/* Arrow indicator pointing to current quest */}
-      {showArrow && currentPOI && (
-        <ArrowIndicator targetPosition={currentPOI.position} />
-      )}
+      {/* 3D Arrow indicator removed for performance - using 2D navigation arrow instead */}
     </>
   );
 }
