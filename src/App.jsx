@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import GameScene from './GameScene'
 import Overlay from './Overlay'
+import LandingScreen from './LandingScreen'
 
 // Define keyboard control mappings
 const keyboardMap = [
@@ -16,6 +17,8 @@ const keyboardMap = [
 function App() {
   // State for managing which POI modal is active (null = no modal)
   const [activePOI, setActivePOI] = useState(null)
+  // State for showing landing screen
+  const [showLanding, setShowLanding] = useState(true)
 
   return (
     <div className="w-full h-full relative">
@@ -77,6 +80,11 @@ function App() {
           poiData={activePOI}
           onClose={() => setActivePOI(null)}
         />
+      )}
+
+      {/* Landing Screen */}
+      {showLanding && (
+        <LandingScreen onStart={() => setShowLanding(false)} />
       )}
     </div>
   )

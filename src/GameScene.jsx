@@ -113,27 +113,167 @@ function Tree({ position }) {
   )
 }
 
-// Simple building component
+// Enhanced building component with windows
 function Building({ position, width = 4, height = 6, depth = 4, color = "#888888" }) {
   return (
-    <mesh position={[position[0], height / 2, position[2]]} castShadow receiveShadow>
-      <boxGeometry args={[width, height, depth]} />
-      <meshStandardMaterial color={color} />
-    </mesh>
+    <group position={[position[0], height / 2, position[2]]}>
+      {/* Main building */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[width, height, depth]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+
+      {/* Windows */}
+      {Array.from({ length: 3 }).map((_, i) => (
+        <group key={i}>
+          {/* Front windows */}
+          <mesh position={[0, -height / 4 + i * (height / 4), depth / 2 + 0.02]}>
+            <boxGeometry args={[width * 0.3, height * 0.15, 0.05]} />
+            <meshStandardMaterial color="#87ceeb" emissive="#ffd700" emissiveIntensity={0.3} />
+          </mesh>
+          {/* Back windows */}
+          <mesh position={[0, -height / 4 + i * (height / 4), -depth / 2 - 0.02]}>
+            <boxGeometry args={[width * 0.3, height * 0.15, 0.05]} />
+            <meshStandardMaterial color="#87ceeb" emissive="#ffd700" emissiveIntensity={0.3} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Roof */}
+      <mesh position={[0, height / 2 + 0.3, 0]} castShadow>
+        <boxGeometry args={[width + 0.5, 0.6, depth + 0.5]} />
+        <meshStandardMaterial color="#8b4513" />
+      </mesh>
+    </group>
   )
 }
 
-// Road segment component
+// Lamp post component
+function LampPost({ position }) {
+  return (
+    <group position={position}>
+      {/* Pole */}
+      <mesh position={[0, 2, 0]} castShadow>
+        <cylinderGeometry args={[0.1, 0.1, 4, 8]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.8} />
+      </mesh>
+      {/* Light */}
+      <mesh position={[0, 4.2, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.8} />
+      </mesh>
+      <pointLight position={[0, 4, 0]} color="#ffd700" intensity={0.5} distance={10} />
+    </group>
+  )
+}
+
+// Bench component
+function Bench({ position, rotation = 0 }) {
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Seat */}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <boxGeometry args={[1.5, 0.1, 0.5]} />
+        <meshStandardMaterial color="#8b4513" />
+      </mesh>
+      {/* Backrest */}
+      <mesh position={[0, 0.7, -0.2]} castShadow>
+        <boxGeometry args={[1.5, 0.6, 0.1]} />
+        <meshStandardMaterial color="#8b4513" />
+      </mesh>
+      {/* Legs */}
+      <mesh position={[-0.6, 0.2, 0]} castShadow>
+        <boxGeometry args={[0.1, 0.4, 0.1]} />
+        <meshStandardMaterial color="#2c3e50" />
+      </mesh>
+      <mesh position={[0.6, 0.2, 0]} castShadow>
+        <boxGeometry args={[0.1, 0.4, 0.1]} />
+        <meshStandardMaterial color="#2c3e50" />
+      </mesh>
+    </group>
+  )
+}
+
+// Directional sign component
+function DirectionalSign({ position, text, pointsTo }) {
+  return (
+    <group position={position}>
+      {/* Post */}
+      <mesh position={[0, 1, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 2, 8]} />
+        <meshStandardMaterial color="#2c3e50" />
+      </mesh>
+      {/* Sign board */}
+      <mesh position={[0, 2.2, 0]} rotation={[0, pointsTo, 0]} castShadow>
+        <boxGeometry args={[1.2, 0.4, 0.1]} />
+        <meshStandardMaterial color="#3498db" />
+      </mesh>
+      {/* Arrow indicator */}
+      <mesh position={[0.5, 2.2, 0.06]} rotation={[0, pointsTo, 0]}>
+        <coneGeometry args={[0.15, 0.3, 3]} />
+        <meshStandardMaterial color="#ffd700" />
+      </mesh>
+    </group>
+  )
+}
+
+// Fountain/central plaza
+function CentralFountain({ position }) {
+  return (
+    <group position={position}>
+      {/* Base */}
+      <mesh position={[0, 0.1, 0]} receiveShadow>
+        <cylinderGeometry args={[2, 2.5, 0.2, 32]} />
+        <meshStandardMaterial color="#95a5a6" />
+      </mesh>
+      {/* Water basin */}
+      <mesh position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[1.8, 1.8, 0.3, 32]} />
+        <meshStandardMaterial color="#3498db" transparent opacity={0.7} roughness={0.1} metalness={0.5} />
+      </mesh>
+      {/* Center pillar */}
+      <mesh position={[0, 1, 0]} castShadow>
+        <cylinderGeometry args={[0.2, 0.3, 1.5, 16]} />
+        <meshStandardMaterial color="#ecf0f1" />
+      </mesh>
+      {/* Water spray effect */}
+      <mesh position={[0, 2, 0]}>
+        <coneGeometry args={[0.3, 0.8, 8]} />
+        <meshStandardMaterial color="#3498db" transparent opacity={0.4} />
+      </mesh>
+      <pointLight position={[0, 1.5, 0]} color="#3498db" intensity={0.5} distance={8} />
+    </group>
+  )
+}
+
+// Road segment component with lane markings
 function Road({ position, rotation = 0, width = 8, length = 30 }) {
   return (
-    <mesh
-      position={position}
-      rotation={[0, rotation, 0]}
-      receiveShadow
-    >
-      <boxGeometry args={[width, 0.1, length]} />
-      <meshStandardMaterial color="#444444" />
-    </mesh>
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Main road */}
+      <mesh receiveShadow>
+        <boxGeometry args={[width, 0.1, length]} />
+        <meshStandardMaterial color="#444444" roughness={0.9} />
+      </mesh>
+
+      {/* Yellow center line dashes */}
+      {Array.from({ length: Math.floor(length / 4) }).map((_, i) => (
+        <mesh key={i} position={[0, 0.11, -length / 2 + i * 4 + 2]}>
+          <boxGeometry args={[0.2, 0.02, 2]} />
+          <meshStandardMaterial color="#ffd700" emissive="#ffd700" emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+
+      {/* White edge lines */}
+      <mesh position={[width / 2 - 0.3, 0.11, 0]}>
+        <boxGeometry args={[0.15, 0.02, length]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[-width / 2 + 0.3, 0.11, 0]}>
+        <boxGeometry args={[0.15, 0.02, length]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+    </group>
   )
 }
 
@@ -238,10 +378,16 @@ export default function GameScene({ onPOITrigger }) {
         shadow-camera-bottom={-50}
       />
 
-      {/* Ground */}
+      {/* Ground with grass pattern */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]}>
-        <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#5a8f3a" />
+        <planeGeometry args={[100, 100, 20, 20]} />
+        <meshStandardMaterial color="#4a7c3a" roughness={0.95} />
+      </mesh>
+
+      {/* Decorative ground patterns */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+        <circleGeometry args={[8, 64]} />
+        <meshStandardMaterial color="#5a8f3a" transparent opacity={0.6} />
       </mesh>
 
       {/* Roads forming a loop */}
@@ -267,6 +413,37 @@ export default function GameScene({ onPOITrigger }) {
       <Tree position={[-30, 0, -20]} />
       <Tree position={[25, 0, -25]} />
       <Tree position={[-18, 0, 18]} />
+      <Tree position={[12, 0, -30]} />
+      <Tree position={[-25, 0, 15]} />
+      <Tree position={[32, 0, -10]} />
+      <Tree position={[-32, 0, 8]} />
+
+      {/* Central Fountain */}
+      <CentralFountain position={[0, 0, 0]} />
+
+      {/* Lamp Posts along roads */}
+      <LampPost position={[8, 0, 20]} />
+      <LampPost position={[-8, 0, 20]} />
+      <LampPost position={[8, 0, -20]} />
+      <LampPost position={[-8, 0, -20]} />
+      <LampPost position={[25, 0, 10]} />
+      <LampPost position={[25, 0, -10]} />
+      <LampPost position={[-25, 0, 10]} />
+      <LampPost position={[-25, 0, -10]} />
+
+      {/* Benches near trees and buildings */}
+      <Bench position={[6, 0, 10]} rotation={Math.PI / 2} />
+      <Bench position={[-10, 0, 8]} rotation={0} />
+      <Bench position={[15, 0, -6]} rotation={-Math.PI / 4} />
+      <Bench position={[-20, 0, -18]} rotation={Math.PI / 3} />
+      <Bench position={[3, 0, -28]} rotation={0} />
+      <Bench position={[-28, 0, 12]} rotation={Math.PI / 2} />
+
+      {/* Directional Signs pointing to POIs */}
+      <DirectionalSign position={[10, 0, 10]} text="Quiz →" pointsTo={Math.PI / 4} />
+      <DirectionalSign position={[-10, 0, -10]} text="Quiz →" pointsTo={-Math.PI / 4} />
+      <DirectionalSign position={[-5, 0, 5]} text="Assistant →" pointsTo={Math.PI} />
+      <DirectionalSign position={[5, 0, -15]} text="Fun Facts →" pointsTo={-Math.PI / 2} />
 
       {/* POI Markers */}
       {POIS.map(poi => (
