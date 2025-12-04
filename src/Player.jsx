@@ -186,6 +186,41 @@ export default function Player({ pois, onPOITrigger }) {
           <meshStandardMaterial color="#ffa500" />
         </mesh>
 
+        {/* Glowing Hammer Logo on top */}
+        <group
+          position={[0, 0.8, -0.6]}
+          rotation={[Math.PI / 2, 0, Math.PI / 4]}
+        >
+          {/* Hammer Handle */}
+          <mesh position={[0, 0, 0.15]} castShadow>
+            <cylinderGeometry args={[0.08, 0.08, 0.8, 8]} />
+            <meshStandardMaterial
+              color="#8b4513"
+              emissive="#8b4513"
+              emissiveIntensity={0.3}
+            />
+          </mesh>
+          {/* Hammer Head */}
+          <mesh position={[0, 0.4, 0.15]} castShadow>
+            <boxGeometry args={[0.5, 0.15, 0.15]} />
+            <meshStandardMaterial
+              color="#c0c0c0"
+              emissive="#ffff00"
+              emissiveIntensity={0.8}
+              metalness={0.9}
+              roughness={0.2}
+            />
+          </mesh>
+          {/* Glow effect */}
+          <pointLight
+            position={[0, 0.4, 0.15]}
+            color="#ffff00"
+            intensity={0.8}
+            distance={1.5}
+            decay={2}
+          />
+        </group>
+
         {/* Wheels */}
         {/* Front Left Wheel */}
         <mesh
