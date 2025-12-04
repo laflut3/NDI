@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import GameScene from './GameScene'
 import Overlay from './Overlay'
+import LandingScreen from './LandingScreen'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
 
@@ -18,6 +19,9 @@ const keyboardMap = [
 function App() {
   // State for managing which POI modal is active (null = no modal)
   const [activePOI, setActivePOI] = useState(null)
+  // State for showing landing screen
+  const [showLanding, setShowLanding] = useState(true)
+
   // Player level (persisted to localStorage)
   const [level, setLevel] = useState(() => {
     try {
@@ -266,11 +270,19 @@ function App() {
         />
       )}
 
+      {/* Level Up Modal */}
       {showLevelUp && (
         <LevelUp level={levelUpNumber} onClose={() => setShowLevelUp(false)} />
       )}
+
+      {/* Badges Modal */}
       {showBadges && (
         <Badges badges={badges} onClose={() => { setShowBadges(false); setHighlightBadgeId(null) }} highlightId={highlightBadgeId} />
+      )}
+
+      {/* Landing Screen */}
+      {showLanding && (
+        <LandingScreen onStart={() => setShowLanding(false)} />
       )}
     </div>
   )

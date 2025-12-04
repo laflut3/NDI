@@ -1,4 +1,32 @@
+import { useEffect } from 'react'
+
 export default function Overlay({ poiData, onClose, onContinue }) {
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (onContinue) onContinue(poiData)
+        else onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [onClose, onContinue, poiData])
+
+  // Render different content based on POI type
+  const renderContent = () => {
+    switch (poiData.type) {
+      case 'quiz':
+        return <QuizContent poiData={poiData} />
+      case 'chatbot':
+        return <ChatbotContent poiData={poiData} />
+      case 'funfact':
+        return <FunFactContent poiData={poiData} />
+      default:
+        return <DefaultContent poiData={poiData} />
+    }
+  }
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-slideUp">
