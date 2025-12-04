@@ -45,14 +45,14 @@ export const QUIZ_DATA = {
         explanation: "Les logiciels libres permettent de prolonger la vie des machines et d'éviter les coûts des licences, renforçant l'autonomie."
       },
       {
-        question: "En plus de sauver les ordinateurs, la démarche NIRD veut aussi que l'école gagne en :",
+        question: "Quel est le grand avantage de Linux (logiciel libre) par rapport à Windows pour la planète et le matériel ?",
         answers: [
-          "Autonomie technologique.",
-          "Vitesse d'impression.",
-          "Popularité sur les réseaux sociaux."
+          "Il est plus rapide pour installer des logiciels propriétaires.",
+          "Il est moins gourmand en ressources, ce qui permet de réutiliser de très vieux ordinateurs.",
+          "Il consomme plus d'électricité, mais permet de faire fonctionner les vieux jeux vidéo."
         ],
-        correctAnswer: 0,
-        explanation: "NIRD vise à redonner du pouvoir d'agir aux équipes éducatives et à renforcer leur autonomie technologique."
+        correctAnswer: 1,
+        explanation: "Linux est léger, ce qui permet de ne pas jeter le matériel plus ancien, luttant ainsi contre l'obsolescence et la production de déchets électroniques."
       }
     ]
   },
@@ -71,14 +71,14 @@ export const QUIZ_DATA = {
         explanation: "La sobriété numérique consiste à réduire la consommation d'énergie et de ressources liée aux usages numériques pour un impact environnemental moindre."
       },
       {
-        question: "Quel est l'un des risques majeurs des 'écosystèmes fermés' (comme les services des Big Tech) pour les utilisateurs ?",
+        question: "En utilisant Linux au lieu de Windows, que gagne l'école sur le plan de la Responsabilité et de l'Autonomie ?",
         answers: [
-          "Le risque de dépendre d'une seule entreprise pour tout (logiciels, données, matériel).",
-          "On doit acheter des accessoires trop chers pour personnaliser l'ordinateur.",
-          "Les applications ne peuvent pas se mettre à jour la nuit."
+          "Elle gagne en vitesse d'impression pour les devoirs.",
+          "Elle n'a plus besoin d'acheter de licences chères et peut adapter ses outils librement.",
+          "Elle obtient des réductions chez les grands fournisseurs de matériel neuf."
         ],
-        correctAnswer: 0,
-        explanation: "Les écosystèmes fermés augmentent notre dépendance, rendant difficile le passage à d'autres solutions (l'autonomie technologique est perdue)."
+        correctAnswer: 1,
+        explanation: "Linux est libre, donc sans frais de licence, et permet une adaptation aux besoins locaux, augmentant ainsi l'autonomie technologique de l'établissement."
       },
       {
         question: "En parlant de 'Numérique Responsable', que signifie le fait que des données soient stockées hors 'UE' (hors Union Européenne) ?",

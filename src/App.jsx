@@ -3,9 +3,12 @@ import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import GameScene from './GameScene'
 import Overlay from './Overlay'
-import LandingScreen from './LandingScreen'
+import IntroPopup from './IntroPopup'
+import QuestTracker from './QuestTracker'
+import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
+import { POIS } from './GameScene'
 
 // Define keyboard control mappings
 const keyboardMap = [
@@ -19,8 +22,6 @@ const keyboardMap = [
 function App() {
   // State for managing which POI modal is active (null = no modal)
   const [activePOI, setActivePOI] = useState(null)
-  // State for showing landing screen
-  const [showLanding, setShowLanding] = useState(true)
 
   // Load initial game state from localStorage
   const loadGameState = () => {
@@ -32,13 +33,15 @@ function App() {
           level: data.level || 1,
           xpProgress: data.xpProgress || 0,
           completedPOIs: data.completedPOIs || [],
-          badges: data.badges || []
+          badges: data.badges || [],
+          currentQuest: data.currentQuest || 'quest1',
+          showIntro: data.showIntro !== undefined ? data.showIntro : true
         }
       }
     } catch (e) {
       console.error('Error loading game state:', e)
     }
-    return { level: 1, xpProgress: 0, completedPOIs: [], badges: [] }
+    return { level: 1, xpProgress: 0, completedPOIs: [], badges: [], currentQuest: 'quest1', showIntro: true }
   }
 
   const initialState = loadGameState()
@@ -51,6 +54,13 @@ function App() {
   const [completedPOIs, setCompletedPOIs] = useState(initialState.completedPOIs)
   // Badges
   const [badges, setBadges] = useState(initialState.badges)
+  // State for showing intro popup
+  const [showIntro, setShowIntro] = useState(initialState.showIntro)
+  // Current quest being tracked
+  const [currentQuest, setCurrentQuest] = useState(initialState.currentQuest)
+  // Quest success modal
+  const [showQuestSuccess, setShowQuestSuccess] = useState(false)
+  const [completedQuestId, setCompletedQuestId] = useState(null)
 
   // Save game state whenever it changes
   useEffect(() => {
@@ -60,13 +70,15 @@ function App() {
         xpProgress,
         completedPOIs,
         badges,
+        currentQuest,
+        showIntro,
         lastSaved: Date.now()
       }
       localStorage.setItem('ndi_game_state', JSON.stringify(gameState))
     } catch (e) {
       console.error('Error saving game state:', e)
     }
-  }, [level, xpProgress, completedPOIs, badges])
+  }, [level, xpProgress, completedPOIs, badges, currentQuest, showIntro])
 
   // Reset progress function
   const resetProgress = () => {
@@ -76,6 +88,19 @@ function App() {
       setXpProgress(0)
       setCompletedPOIs([])
       setBadges([])
+      setCurrentQuest('quest1')
+      setShowIntro(true)
+    }
+  }
+
+  // Handle quest click from tracker
+  const handleQuestClick = (quest) => {
+    setCurrentQuest(quest.id)
+    // Find the POI location for this quest
+    const poi = POIS.find(p => p.id === quest.requiredPOI)
+    if (poi) {
+      // You can add camera/player navigation here in the future
+      console.log(`Navigate to POI at position:`, poi.position)
     }
   }
 
@@ -101,11 +126,11 @@ function App() {
       {/* Game Title Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-6">
         <h1 className="text-3xl font-bold text-white text-center drop-shadow-lg">
-          Digital Independence Mission
+          🐧 La Confrérie du Manchot
         </h1>
         <div className="absolute right-6 top-4 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-md text-white font-semibold w-52">
           <div className="flex items-center justify-between mb-1">
-            <span>Level {level}</span>
+            <span>Niveau {level}</span>
             <span className="text-xs">{xpProgress}/{xpNeededForLevel(level)}</span>
           </div>
           <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
@@ -138,37 +163,37 @@ function App() {
           </button>
         </div>
         <p className="text-white/90 text-center mt-2 text-sm">
-          Drive your Repair Truck around the campus. Take quizzes, chat with the assistant, and discover fun facts!
+          Conduis ton camion de réparation à travers le campus. Complète les quiz et libère les machines !
         </p>
       </div>
 
       {/* Controls Guide */}
       <div className="absolute bottom-0 left-0 z-10 bg-black/60 backdrop-blur-sm p-4 rounded-tr-xl">
-        <p className="text-white text-sm font-semibold mb-2">Controls:</p>
+        <p className="text-white text-sm font-semibold mb-2">Contrôles:</p>
         <div className="text-white/80 text-xs space-y-1">
-          <p>↑ W - Forward</p>
-          <p>↓ S - Backward</p>
-          <p>← A - Turn Left</p>
-          <p>→ D - Turn Right</p>
-          <p className="text-yellow-300 font-semibold">⚡ SHIFT/SPACE - Turbo Boost</p>
+          <p>↑ W - Avancer</p>
+          <p>↓ S - Reculer</p>
+          <p>← A - Tourner à gauche</p>
+          <p>→ D - Tourner à droite</p>
+          <p className="text-yellow-300 font-semibold">⚡ SHIFT/ESPACE - Turbo</p>
         </div>
       </div>
 
       {/* POI Legend */}
       <div className="absolute bottom-0 right-0 z-10 bg-black/60 backdrop-blur-sm p-4 rounded-tl-xl">
-        <p className="text-white text-sm font-semibold mb-2">Points of Interest:</p>
+        <p className="text-white text-sm font-semibold mb-2">Points d'Intérêt:</p>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-white shadow-lg shadow-white/50"></div>
-            <span className="text-white/80 text-xs">Quiz Stations (4)</span>
+            <span className="text-white/80 text-xs">Stations Quiz (4)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-yellow-400 shadow-lg shadow-yellow-400/50"></div>
-            <span className="text-white/80 text-xs">Digital Assistant</span>
+            <span className="text-white/80 text-xs">Assistant Numérique</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50"></div>
-            <span className="text-white/80 text-xs">Fun Facts</span>
+            <span className="text-white/80 text-xs">Faits Intéressants</span>
           </div>
         </div>
       </div>
@@ -287,8 +312,30 @@ function App() {
               // Close POI overlay first
               setActivePOI(null)
 
-              // Show modals in sequence: Level-up first, then badges
-              if (gainedLevels > 0) {
+              // Check if this POI is a quest completion
+              const QUEST_MAP = {
+                'quiz1': 'quest1',
+                'quiz2': 'quest2',
+                'quiz3': 'quest3',
+                'quiz4': 'quest4'
+              }
+              const completedQuest = QUEST_MAP[poi.id]
+              const shouldShowQuestSuccess = completedQuest && poi.type === 'quiz'
+
+              // Advance to next quest if applicable
+              if (completedQuest) {
+                const questNumber = parseInt(completedQuest.replace('quest', ''))
+                if (questNumber < 4) {
+                  setCurrentQuest(`quest${questNumber + 1}`)
+                }
+              }
+
+              // Show modals in sequence: Quest Success -> Level-up -> Badges
+              if (shouldShowQuestSuccess) {
+                // Show quest success first
+                setCompletedQuestId(poi.id)
+                setTimeout(() => setShowQuestSuccess(true), 300)
+              } else if (gainedLevels > 0) {
                 // Show level-up immediately
                 setLevelUpNumber(newLevel)
                 setLevelUpXP(award)
@@ -331,10 +378,35 @@ function App() {
         <Badges badges={badges} onClose={() => { setShowBadges(false); setHighlightBadgeId(null) }} highlightId={highlightBadgeId} />
       )}
 
-      {/* Landing Screen */}
-      {showLanding && (
-        <LandingScreen onStart={() => setShowLanding(false)} />
+      {/* Quest Success Modal */}
+      {showQuestSuccess && completedQuestId && (
+        <QuestSuccess
+          questId={completedQuestId}
+          onClose={() => {
+            setShowQuestSuccess(false)
+            setCompletedQuestId(null)
+            // After quest success, show level-up if needed, then badges
+            const gainedLevels = levelUpLevels
+            if (gainedLevels > 0) {
+              setTimeout(() => setShowLevelUp(true), 300)
+            } else if (highlightBadgeId) {
+              setTimeout(() => setShowBadges(true), 300)
+            }
+          }}
+        />
       )}
+
+      {/* Intro Popup */}
+      {showIntro && (
+        <IntroPopup onClose={() => setShowIntro(false)} />
+      )}
+
+      {/* Quest Tracker */}
+      <QuestTracker
+        completedPOIs={completedPOIs}
+        currentQuest={currentQuest}
+        onQuestClick={handleQuestClick}
+      />
     </div>
   )
 }
