@@ -5,17 +5,20 @@ import * as THREE from "three";
 
 export default function Player({ pois, onPOITrigger }) {
   const meshRef = useRef();
+  const flamesRef = useRef();
   const { camera } = useThree();
 
   // Physics state
   const [position, setPosition] = useState([0, 0.75, 0]);
   const [rotation, setRotation] = useState(0);
   const velocity = useRef(new THREE.Vector3(0, 0, 0));
+  const [isBoosting, setIsBoosting] = useState(false);
+  const flameOpacity = useRef(0);
 
   // Track which POIs have been visited to prevent spam
-  const visitedPOIs = useRef(new Set())
-  const gamePaused = useRef(false)
-  const playerNearPOI = useRef(new Map()) // Track if player is currently near each POI
+  const visitedPOIs = useRef(new Set());
+  const gamePaused = useRef(false);
+  const playerNearPOI = useRef(new Map()); // Track if player is currently near each POI
 
   // Get keyboard state
   const [, getKeys] = useKeyboardControls();
@@ -38,13 +41,40 @@ export default function Player({ pois, onPOITrigger }) {
 
     const keys = getKeys();
 
+    // Update boost state
+    setIsBoosting(keys.boost);
+
+    // Animate flame opacity
+    const fadeSpeed = 10;
+    if (keys.boost) {
+      flameOpacity.current = Math.min(
+        1,
+        flameOpacity.current + fadeSpeed * delta
+      );
+    } else {
+      flameOpacity.current = Math.max(
+        0,
+        flameOpacity.current - fadeSpeed * delta
+      );
+    }
+
+    // Update flame materials if they exist
+    if (flamesRef.current) {
+      flamesRef.current.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material.opacity =
+            child.material.userData.baseOpacity * flameOpacity.current;
+        }
+      });
+    }
+
     // Movement parameters
-    const baseAcceleration = 25
-    const boostMultiplier = keys.boost ? 2.0 : 1.0
-    const acceleration = baseAcceleration * boostMultiplier
-    const turnSpeed = 3.5
-    const friction = 0.93
-    const maxSpeed = keys.boost ? 20 : 12
+    const baseAcceleration = 25;
+    const boostMultiplier = keys.boost ? 2.0 : 1.0;
+    const acceleration = baseAcceleration * boostMultiplier;
+    const turnSpeed = 3.5;
+    const friction = 0.93;
+    const maxSpeed = keys.boost ? 20 : 12;
 
     // Steering
     if (keys.left) {
@@ -118,24 +148,24 @@ export default function Player({ pois, onPOITrigger }) {
           Math.pow(newPos[2] - poi.position[2], 2)
       );
 
-      const isNearPOI = distance < 3
-      const wasNearPOI = playerNearPOI.current.get(poi.id)
+      const isNearPOI = distance < 3;
+      const wasNearPOI = playerNearPOI.current.get(poi.id);
 
       // Update near status
-      playerNearPOI.current.set(poi.id, isNearPOI)
+      playerNearPOI.current.set(poi.id, isNearPOI);
 
       // Only trigger if:
       // 1. Player just entered the range (wasn't near before, is near now)
       // 2. POI hasn't been visited yet OR player left and came back
       if (isNearPOI && !wasNearPOI && !visitedPOIs.current.has(poi.id)) {
-        visitedPOIs.current.add(poi.id)
-        gamePaused.current = true
-        onPOITrigger(poi)
+        visitedPOIs.current.add(poi.id);
+        gamePaused.current = true;
+        onPOITrigger(poi);
       }
 
       // Clear visited status when player leaves the POI range
       if (!isNearPOI && wasNearPOI) {
-        visitedPOIs.current.delete(poi.id)
+        visitedPOIs.current.delete(poi.id);
       }
     });
   });
@@ -196,6 +226,60 @@ export default function Player({ pois, onPOITrigger }) {
           <cylinderGeometry args={[0.3, 0.3, 0.2, 16]} />
           <meshStandardMaterial color="#1a1a1a" />
         </mesh>
+
+        {/* Boost Flames */}
+        {flameOpacity.current > 0 && (
+          <group ref={flamesRef} position={[0, 0.1, -1.5]}>
+            {/* Left flame */}
+            <mesh position={[-0.4, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <coneGeometry args={[0.3, 1.2, 8]} />
+              <meshStandardMaterial
+                color="#ff4500"
+                emissive="#ff4500"
+                emissiveIntensity={2}
+                transparent
+                opacity={0.8}
+                userData={{ baseOpacity: 0.8 }}
+              />
+            </mesh>
+            {/* Right flame */}
+            <mesh position={[0.4, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <coneGeometry args={[0.3, 1.2, 8]} />
+              <meshStandardMaterial
+                color="#ff4500"
+                emissive="#ff4500"
+                emissiveIntensity={2}
+                transparent
+                opacity={0.8}
+                userData={{ baseOpacity: 0.8 }}
+              />
+            </mesh>
+            {/* Inner glow - left */}
+            <mesh position={[-0.4, 0, -0.2]} rotation={[Math.PI / 2, 0, 0]}>
+              <coneGeometry args={[0.2, 0.8, 8]} />
+              <meshStandardMaterial
+                color="#ffff00"
+                emissive="#ffff00"
+                emissiveIntensity={3}
+                transparent
+                opacity={0.9}
+                userData={{ baseOpacity: 0.9 }}
+              />
+            </mesh>
+            {/* Inner glow - right */}
+            <mesh position={[0.4, 0, -0.2]} rotation={[Math.PI / 2, 0, 0]}>
+              <coneGeometry args={[0.2, 0.8, 8]} />
+              <meshStandardMaterial
+                color="#ffff00"
+                emissive="#ffff00"
+                emissiveIntensity={3}
+                transparent
+                opacity={0.9}
+                userData={{ baseOpacity: 0.9 }}
+              />
+            </mesh>
+          </group>
+        )}
       </mesh>
     </group>
   );
