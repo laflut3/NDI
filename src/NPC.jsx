@@ -222,14 +222,14 @@ export default function NPC({
       {!isDead && (
         <group ref={meshRef}>
           {/* Body */}
-          <mesh position={[0, 0.5, 0]} castShadow>
+          <mesh position={[0, 0.5, 0]}>
             <boxGeometry args={[0.4, 0.8, 0.3]} />
             <meshStandardMaterial color="#e74c3c" />
           </mesh>
 
           {/* Head */}
-          <mesh position={[0, 1.1, 0]} castShadow>
-            <sphereGeometry args={[0.25, 16, 16]} />
+          <mesh position={[0, 1.1, 0]}>
+            <sphereGeometry args={[0.25, 8, 8]} />
             <meshStandardMaterial color="#f4a460" />
           </mesh>
 
@@ -244,42 +244,38 @@ export default function NPC({
           </mesh>
 
           {/* Left Arm */}
-          <mesh 
-            position={[-0.25, 0.7, 0]} 
+          <mesh
+            position={[-0.25, 0.7, 0]}
             rotation={[armRotationLeft.current, 0, 0]}
-            castShadow
           >
-            <cylinderGeometry args={[0.1, 0.08, 0.5, 8]} />
+            <cylinderGeometry args={[0.1, 0.08, 0.5, 6]} />
             <meshStandardMaterial color="#f4a460" />
           </mesh>
 
           {/* Right Arm */}
-          <mesh 
-            position={[0.25, 0.7, 0]} 
+          <mesh
+            position={[0.25, 0.7, 0]}
             rotation={[armRotationRight.current, 0, 0]}
-            castShadow
           >
-            <cylinderGeometry args={[0.1, 0.08, 0.5, 8]} />
+            <cylinderGeometry args={[0.1, 0.08, 0.5, 6]} />
             <meshStandardMaterial color="#f4a460" />
           </mesh>
 
           {/* Left Leg */}
-          <mesh 
-            position={[-0.15, 0.1, 0]} 
+          <mesh
+            position={[-0.15, 0.1, 0]}
             rotation={[legRotationLeft.current, 0, 0]}
-            castShadow
           >
-            <cylinderGeometry args={[0.08, 0.08, 0.5, 8]} />
+            <cylinderGeometry args={[0.08, 0.08, 0.5, 6]} />
             <meshStandardMaterial color="#2c3e50" />
           </mesh>
 
           {/* Right Leg */}
-          <mesh 
-            position={[0.15, 0.1, 0]} 
+          <mesh
+            position={[0.15, 0.1, 0]}
             rotation={[legRotationRight.current, 0, 0]}
-            castShadow
           >
-            <cylinderGeometry args={[0.08, 0.08, 0.5, 8]} />
+            <cylinderGeometry args={[0.08, 0.08, 0.5, 6]} />
             <meshStandardMaterial color="#2c3e50" />
           </mesh>
         </group>

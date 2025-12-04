@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
 
-export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map() }) {
+export default function Player({ pois, onPOITrigger, obstacles = [], npcData = new Map(), completedPOIs = [] }) {
   const meshRef = useRef();
   const flamesRef = useRef();
   const { camera, scene } = useThree();
@@ -379,6 +379,27 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
     camera.position.lerp(targetCameraPos, 0.05);
     camera.lookAt(newPos[0], newPos[1], newPos[2]);
 
+    // Helper function to check if a quiz POI is accessible
+    const isQuizAccessible = (poi) => {
+      // Non-quiz POIs are always accessible
+      if (poi.type !== 'quiz') return true;
+
+      // Quiz order: quiz1 -> quiz2 -> quiz3 -> quiz4
+      const quizOrder = ['quiz1', 'quiz2', 'quiz3', 'quiz4'];
+      const currentIndex = quizOrder.indexOf(poi.id);
+
+      // quiz1 is always accessible
+      if (currentIndex === 0) return true;
+
+      // For other quizzes, check if the previous one is completed
+      if (currentIndex > 0) {
+        const previousQuiz = quizOrder[currentIndex - 1];
+        return completedPOIs.includes(previousQuiz);
+      }
+
+      return true;
+    };
+
     // Check distance to POIs
     pois.forEach((poi) => {
       const distance = Math.sqrt(
@@ -392,13 +413,29 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
       // Update near status
       playerNearPOI.current.set(poi.id, isNearPOI);
 
+      // Check if POI is accessible (for quiz locking)
+      const isAccessible = isQuizAccessible(poi);
+
       // Only trigger if:
       // 1. Player just entered the range (wasn't near before, is near now)
       // 2. POI hasn't been visited yet OR player left and came back
+      // 3. POI is accessible (not locked)
       if (isNearPOI && !wasNearPOI && !visitedPOIs.current.has(poi.id)) {
-        visitedPOIs.current.add(poi.id);
-        gamePaused.current = true;
-        onPOITrigger(poi);
+        if (isAccessible) {
+          visitedPOIs.current.add(poi.id);
+          gamePaused.current = true;
+          onPOITrigger(poi);
+        } else {
+          // Show locked feedback - dispatch event for UI to display message
+          window.dispatchEvent(new CustomEvent('poi-locked', {
+            detail: {
+              poi,
+              message: '🔒 Cette quête est verrouillée. Complète la quête précédente d\'abord !'
+            }
+          }));
+          // Mark as visited temporarily to prevent spam
+          visitedPOIs.current.add(poi.id);
+        }
       }
 
       // Clear visited status when player leaves the POI range

@@ -62,6 +62,21 @@ function App() {
   const [showQuestSuccess, setShowQuestSuccess] = useState(false)
   const [completedQuestId, setCompletedQuestId] = useState(null)
 
+  // Locked POI notification
+  const [lockedMessage, setLockedMessage] = useState(null)
+
+  // Listen for locked POI events
+  useEffect(() => {
+    const handleLockedPOI = (event) => {
+      setLockedMessage(event.detail.message)
+      // Auto-hide after 3 seconds
+      setTimeout(() => setLockedMessage(null), 3000)
+    }
+
+    window.addEventListener('poi-locked', handleLockedPOI)
+    return () => window.removeEventListener('poi-locked', handleLockedPOI)
+  }, [])
+
   // Save game state whenever it changes
   useEffect(() => {
     try {
@@ -204,8 +219,18 @@ function App() {
           shadows
           camera={{ position: [0, 20, 20], fov: 50 }}
           className="bg-gradient-to-b from-sky-400 to-sky-200"
+          gl={{
+            antialias: false, // Disable antialiasing for performance
+            powerPreference: "high-performance"
+          }}
+          dpr={[1, 1.5]} // Limit pixel ratio for performance
+          performance={{ min: 0.5 }} // Allow frame rate to drop to maintain performance
         >
-          <GameScene onPOITrigger={setActivePOI} />
+          <GameScene
+            onPOITrigger={setActivePOI}
+            currentQuest={currentQuest}
+            completedPOIs={completedPOIs}
+          />
         </Canvas>
       </KeyboardControls>
 
@@ -407,6 +432,15 @@ function App() {
         currentQuest={currentQuest}
         onQuestClick={handleQuestClick}
       />
+
+      {/* Locked POI Notification */}
+      {lockedMessage && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-bounce">
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-8 py-4 rounded-2xl shadow-2xl border-4 border-red-400 max-w-md">
+            <p className="text-xl font-bold text-center">{lockedMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

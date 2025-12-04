@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Matrix4 } from "three";
 import Player from "./Player";
 import NPC from "./NPC";
+import ArrowIndicator from "./ArrowIndicator";
 import { QUIZ_DATA } from "./quizData";
 
 // POI data with positions and content
@@ -745,7 +746,7 @@ const OBSTACLES = [
   { x: -32, z: 8, width: 2.5, depth: 2.5 },
 ];
 
-export default function GameScene({ onPOITrigger }) {
+export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [] }) {
   const [npcData, setNpcData] = useState(new Map());
 
   // Callback to collect NPC position and collision data from each NPC
@@ -757,6 +758,31 @@ export default function GameScene({ onPOITrigger }) {
     });
   };
 
+  // Map quests to their corresponding POI IDs
+  const QUEST_TO_POI = {
+    'quest1': 'quiz1',
+    'quest2': 'quiz2',
+    'quest3': 'quiz3',
+    'quest4': 'quiz4'
+  };
+
+  // Get the POI for the current quest
+  const currentPOI = POIS.find(poi => poi.id === QUEST_TO_POI[currentQuest]);
+
+  // Only show arrow if there's a current POI and it's not completed yet
+  const showArrow = currentPOI && !completedPOIs.includes(currentPOI.id);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🎮 GameScene Debug:', {
+      currentQuest,
+      completedPOIs,
+      currentPOI: currentPOI?.id,
+      showArrow,
+      poiPosition: currentPOI?.position
+    });
+  }, [currentQuest, completedPOIs, currentPOI, showArrow]);
+
   return (
     <>
       {/* Lighting */}
@@ -765,23 +791,24 @@ export default function GameScene({ onPOITrigger }) {
         position={[20, 30, 20]}
         intensity={1}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-50}
-        shadow-camera-right={50}
-        shadow-camera-top={50}
-        shadow-camera-bottom={-50}
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
+        shadow-bias={-0.0001}
       />
 
-      {/* Ground with grass pattern */}
+      {/* Ground with grass pattern (OPTIMIZED: reduced segments from 20x20 to 5x5) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow position={[0, 0, 0]}>
-        <planeGeometry args={[100, 100, 20, 20]} />
+        <planeGeometry args={[100, 100, 5, 5]} />
         <meshStandardMaterial color="#4a7c3a" roughness={0.95} />
       </mesh>
 
-      {/* Decorative ground patterns */}
+      {/* Decorative ground patterns (OPTIMIZED: reduced segments from 64 to 32) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <circleGeometry args={[8, 64]} />
+        <circleGeometry args={[8, 32]} />
         <meshStandardMaterial color="#5a8f3a" transparent opacity={0.6} />
       </mesh>
 
@@ -914,8 +941,8 @@ export default function GameScene({ onPOITrigger }) {
         <POIMarker key={poi.id} data={poi} />
       ))}
 
-      {/* NPCs with random pathing */}
-      {Array.from({ length: 4 }).map((_, i) => (
+      {/* NPCs with random pathing (REDUCED from 4 to 2 for performance) */}
+      {Array.from({ length: 2 }).map((_, i) => (
         <NPC
           key={`npc-${i}`}
           id={`npc-${i}`}
@@ -930,7 +957,13 @@ export default function GameScene({ onPOITrigger }) {
         onPOITrigger={onPOITrigger}
         obstacles={OBSTACLES}
         npcData={npcData}
+        completedPOIs={completedPOIs}
       />
+
+      {/* Arrow indicator pointing to current quest */}
+      {showArrow && currentPOI && (
+        <ArrowIndicator targetPosition={currentPOI.position} />
+      )}
     </>
   );
 }
