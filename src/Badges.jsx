@@ -2,8 +2,8 @@ import React from 'react'
 
 export default function Badges({ badges = [], onClose, highlightId }) {
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" />
+    <div className="absolute inset-0 z-[100] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/70" />
 
       <div className="relative z-10 w-full max-w-3xl mx-4 bg-white rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">

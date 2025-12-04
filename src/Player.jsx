@@ -118,12 +118,56 @@ export default function Player({ pois, onPOITrigger }) {
       position[2] + velocity.current.z * delta,
     ];
 
+    // Define all collidable objects (buildings, trees - NOT fountain at spawn)
+    const obstacles = [
+      // Buildings
+      { x: -10, z: 0, width: 8, depth: 12 },
+      { x: 10, z: 5, width: 10, depth: 8 },
+      { x: 5, z: -10, width: 6, depth: 6 },
+      { x: -15, z: -25, width: 12, depth: 10 },
+      // Trees (approximate circular collision as squares)
+      { x: 8, z: 12, width: 2.5, depth: 2.5 },
+      { x: -12, z: 10, width: 2.5, depth: 2.5 },
+      { x: 18, z: -8, width: 2.5, depth: 2.5 },
+      { x: -8, z: -12, width: 2.5, depth: 2.5 },
+      { x: 30, z: 15, width: 2.5, depth: 2.5 },
+      { x: -30, z: -20, width: 2.5, depth: 2.5 },
+      { x: 25, z: -25, width: 2.5, depth: 2.5 },
+      { x: -18, z: 18, width: 2.5, depth: 2.5 },
+      { x: 12, z: -30, width: 2.5, depth: 2.5 },
+      { x: -25, z: 15, width: 2.5, depth: 2.5 },
+      { x: 32, z: -10, width: 2.5, depth: 2.5 },
+      { x: -32, z: 8, width: 2.5, depth: 2.5 },
+    ];
+
+    // Check collision with obstacles
+    const playerRadius = 1.5; // Approximate player size
+    let colliding = false;
+
+    for (const obstacle of obstacles) {
+      // AABB collision detection
+      const obstacleLeft = obstacle.x - obstacle.width / 2;
+      const obstacleRight = obstacle.x + obstacle.width / 2;
+      const obstacleTop = obstacle.z - obstacle.depth / 2;
+      const obstacleBottom = obstacle.z + obstacle.depth / 2;
+
+      if (
+        newPos[0] + playerRadius > obstacleLeft &&
+        newPos[0] - playerRadius < obstacleRight &&
+        newPos[2] + playerRadius > obstacleTop &&
+        newPos[2] - playerRadius < obstacleBottom
+      ) {
+        colliding = true;
+        break;
+      }
+    }
+
     // Simple boundary check (keep player in map)
-    if (Math.abs(newPos[0]) < 45 && Math.abs(newPos[2]) < 45) {
+    if (Math.abs(newPos[0]) < 45 && Math.abs(newPos[2]) < 45 && !colliding) {
       setPosition(newPos);
     } else {
-      // Bounce back if hitting boundary
-      velocity.current.multiplyScalar(-0.5);
+      // Bounce back if hitting boundary or obstacle
+      velocity.current.multiplyScalar(-0.3);
     }
 
     // Update mesh transform

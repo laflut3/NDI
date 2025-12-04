@@ -18,8 +18,8 @@ export default function LevelUp({ level, onClose, xpGained = 0, levelsGained = 0
   })
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" />
+    <div className="absolute inset-0 z-[100] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/70" />
 
       <div className="relative z-10 w-full max-w-md mx-4 bg-white rounded-2xl p-6 text-center shadow-2xl">
         <div className="text-4xl font-extrabold text-green-600 mb-2">🎉 Level Up!</div>
