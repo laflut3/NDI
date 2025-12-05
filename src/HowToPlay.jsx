@@ -59,7 +59,7 @@ export default function HowToPlay({ onClose }) {
                   <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center font-bold text-sm">2</div>
                   <div>
                     <p className="font-semibold text-gray-800">Suivez les flèches de navigation</p>
-                    <p className="text-sm text-gray-600">Une <span className="font-semibold text-yellow-600">flèche jaune 3D</span> apparaît au-dessus du POI cible et une <span className="font-semibold text-blue-600">boussole 2D</span> indique la direction</p>
+                    <p className="text-sm text-gray-600">Une <span className="font-semibold text-yellow-600">flèche jaune 3D</span> apparaît au-dessus du POI ciblé par la quête selectionné</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
