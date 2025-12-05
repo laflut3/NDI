@@ -80,9 +80,13 @@ export function useMultiplayer() {
 
   // Setup connection event handlers
   const setupConnection = (conn) => {
+    console.log("Setting up connection with:", conn.peer);
+
+    // Store connection immediately to prevent duplicates
+    connectionsRef.current.set(conn.peer, conn);
+
     conn.on("open", () => {
-      console.log("Connection opened with:", conn.peer);
-      connectionsRef.current.set(conn.peer, conn);
+      console.log("✅ Connection opened with:", conn.peer);
 
       // Update remote players to add this peer
       setRemotePlayers((prev) => {
@@ -155,8 +159,9 @@ export function useMultiplayer() {
     });
 
     conn.on("close", () => {
-      console.log("Connection closed with:", conn.peer);
+      console.log("❌ Connection closed with:", conn.peer);
       connectionsRef.current.delete(conn.peer);
+      roomPeersRef.current.delete(conn.peer);
       setRemotePlayers((prev) => {
         const next = new Map(prev);
         next.delete(conn.peer);
@@ -165,29 +170,45 @@ export function useMultiplayer() {
     });
 
     conn.on("error", (err) => {
-      console.error("Connection error with", conn.peer, ":", err);
+      console.error("❌ Connection error with", conn.peer, ":", err);
+      // Clean up on error
+      connectionsRef.current.delete(conn.peer);
+      roomPeersRef.current.delete(conn.peer);
+      setRemotePlayers((prev) => {
+        const next = new Map(prev);
+        next.delete(conn.peer);
+        return next;
+      });
+    });
+
+    conn.on("iceStateChanged", (state) => {
+      console.log("ICE state changed for", conn.peer, ":", state);
     });
   };
 
   // Connect to another peer
   const connectToPeer = (peerId) => {
     if (!peerRef.current) {
-      console.error("Peer not initialized");
+      console.error("❌ Peer not initialized");
       return;
     }
 
     if (peerId === myPeerId) {
-      console.log("Cannot connect to yourself");
+      console.log("⚠️ Cannot connect to yourself");
       return;
     }
 
     if (connectionsRef.current.has(peerId)) {
-      console.log("Already connected to", peerId);
+      console.log("⚠️ Already connected to", peerId);
       return;
     }
 
-    console.log("Connecting to peer:", peerId);
-    const conn = peerRef.current.connect(peerId);
+    console.log("🔌 Connecting to peer:", peerId);
+    const conn = peerRef.current.connect(peerId, {
+      reliable: true,
+      serialization: "json",
+    });
+
     setupConnection(conn);
   };
 
@@ -220,11 +241,19 @@ export function useMultiplayer() {
 
     // Try to connect to the room host (using room ID as peer ID)
     if (roomId !== myPeerId) {
-      // Connect to room host
-      const hostConn = peerRef.current.connect(roomId);
+      console.log("🔌 Connecting to room host:", roomId);
+      // Connect to room host with reliable connection
+      const hostConn = peerRef.current.connect(roomId, {
+        reliable: true,
+        serialization: "json",
+      });
 
+      // Set up connection handlers FIRST
+      setupConnection(hostConn);
+
+      // Then send join message when open
       hostConn.on("open", () => {
-        console.log("Connected to room host, requesting peer list");
+        console.log("✅ Connected to room host, requesting peer list");
         // Request the list of all peers in the room
         hostConn.send({
           type: "join-room",
@@ -232,7 +261,12 @@ export function useMultiplayer() {
         });
       });
 
-      setupConnection(hostConn);
+      // Handle connection errors
+      hostConn.on("error", (err) => {
+        console.error("❌ Failed to connect to room host:", err);
+        setCurrentRoom(null);
+        roomPeersRef.current.delete(roomId);
+      });
     } else {
       // We are the room host
       console.log("🏠 You are the room host. Share this room ID:", roomId);
