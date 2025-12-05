@@ -110,7 +110,7 @@ export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest
   }
 
   return (
-    <div className="fixed top-6 left-6 z-20 max-w-xs sm:max-w-sm">
+    <div className="fixed top-6 left-6 z-40 max-w-xs sm:max-w-sm">
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
