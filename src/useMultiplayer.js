@@ -10,6 +10,7 @@ export function useMultiplayer() {
   const peerRef = useRef(null);
   const connectionsRef = useRef(new Map());
   const roomPeersRef = useRef(new Set()); // Track peers in current room
+  const keepAliveIntervalRef = useRef(null);
 
   useEffect(() => {
     // Generate a short random ID (6 characters)
@@ -71,8 +72,24 @@ export function useMultiplayer() {
       console.error("PeerJS error:", err);
     });
 
+    // Start keepalive to prevent connection timeout
+    keepAliveIntervalRef.current = setInterval(() => {
+      connectionsRef.current.forEach((conn, peerId) => {
+        if (conn.open) {
+          try {
+            conn.send({ type: "ping", timestamp: Date.now() });
+          } catch (err) {
+            console.error("Failed to send keepalive to", peerId);
+          }
+        }
+      });
+    }, 10000); // Send keepalive every 10 seconds
+
     // Cleanup on unmount
     return () => {
+      if (keepAliveIntervalRef.current) {
+        clearInterval(keepAliveIntervalRef.current);
+      }
       connectionsRef.current.forEach((conn) => conn.close());
       peer.destroy();
     };
@@ -97,9 +114,19 @@ export function useMultiplayer() {
     });
 
     conn.on("data", (data) => {
-      console.log("Received data from", conn.peer, ":", data);
+      // Don't log ping/pong messages to reduce console spam
+      if (data.type !== "ping" && data.type !== "pong") {
+        console.log("Received data from", conn.peer, ":", data);
+      }
 
-      if (data.type === "position") {
+      if (data.type === "ping") {
+        // Respond to keepalive ping
+        if (conn.open) {
+          conn.send({ type: "pong", timestamp: Date.now() });
+        }
+      } else if (data.type === "pong") {
+        // Keepalive response received, connection is alive
+      } else if (data.type === "position") {
         setRemotePlayers((prev) => {
           const next = new Map(prev);
           next.set(conn.peer, {
@@ -183,6 +210,34 @@ export function useMultiplayer() {
 
     conn.on("iceStateChanged", (state) => {
       console.log("ICE state changed for", conn.peer, ":", state);
+
+      if (state === "disconnected") {
+        console.log(
+          "⚠️ Connection disconnected, attempting to reconnect to",
+          conn.peer
+        );
+        // Wait a bit before reconnecting
+        setTimeout(() => {
+          if (
+            !connectionsRef.current.has(conn.peer) ||
+            !connectionsRef.current.get(conn.peer).open
+          ) {
+            console.log("🔄 Reconnecting to", conn.peer);
+            const peerId = conn.peer;
+            connectionsRef.current.delete(peerId);
+            connectToPeer(peerId);
+          }
+        }, 2000);
+      } else if (state === "failed") {
+        console.error("❌ Connection failed with", conn.peer);
+        connectionsRef.current.delete(conn.peer);
+        roomPeersRef.current.delete(conn.peer);
+        setRemotePlayers((prev) => {
+          const next = new Map(prev);
+          next.delete(conn.peer);
+          return next;
+        });
+      }
     });
   };
 
