@@ -934,6 +934,72 @@ export default function GameScene({
         <meshStandardMaterial color="#5a8f3a" transparent opacity={0.6} />
       </mesh>
 
+      {/* Optimized glowing borders - Simple walls (NO LIGHTS, emissive only) */}
+      {/* North border */}
+      <mesh position={[0, 2, -50]}>
+        <boxGeometry args={[100, 4, 0.5]} />
+        <meshStandardMaterial
+          color="#6366f1"
+          emissive="#6366f1"
+          emissiveIntensity={0.5}
+          metalness={0.3}
+          roughness={0.7}
+        />
+      </mesh>
+
+      {/* South border */}
+      <mesh position={[0, 2, 50]}>
+        <boxGeometry args={[100, 4, 0.5]} />
+        <meshStandardMaterial
+          color="#ec4899"
+          emissive="#ec4899"
+          emissiveIntensity={0.5}
+          metalness={0.3}
+          roughness={0.7}
+        />
+      </mesh>
+
+      {/* East border */}
+      <mesh position={[50, 2, 0]}>
+        <boxGeometry args={[0.5, 4, 100]} />
+        <meshStandardMaterial
+          color="#a855f7"
+          emissive="#a855f7"
+          emissiveIntensity={0.5}
+          metalness={0.3}
+          roughness={0.7}
+        />
+      </mesh>
+
+      {/* West border */}
+      <mesh position={[-50, 2, 0]}>
+        <boxGeometry args={[0.5, 4, 100]} />
+        <meshStandardMaterial
+          color="#10b981"
+          emissive="#10b981"
+          emissiveIntensity={0.5}
+          metalness={0.3}
+          roughness={0.7}
+        />
+      </mesh>
+
+      {/* Corner markers (simple cubes, no lights) */}
+      {[
+        [-50, -50, '#ff0066'],
+        [50, -50, '#00ffff'],
+        [-50, 50, '#ffff00'],
+        [50, 50, '#ff00ff']
+      ].map(([x, z, color], i) => (
+        <mesh key={`corner-${i}`} position={[x, 3, z]}>
+          <boxGeometry args={[1, 6, 1]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={1}
+          />
+        </mesh>
+      ))}
+
       {/* Roads forming a loop */}
       {/* Horizontal roads */}
       <Road position={[0, 0.05, 20]} rotation={0} length={60} />

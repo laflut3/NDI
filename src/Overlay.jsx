@@ -203,16 +203,10 @@ function FunFactContent({ poiData }) {
   return (
     <div className="space-y-6">
       {/* Introduction */}
-      <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-6 rounded-xl text-white">
-        <div className="flex items-start gap-4">
-          <div className="text-4xl">💡</div>
-          <div>
-            <h3 className="text-xl font-bold mb-2">Faits Fascinants sur le Numérique</h3>
-            <p className="text-white/90 leading-relaxed">
-              Découvrez des informations surprenantes sur la technologie, l'écologie numérique et l'impact de nos usages quotidiens.
-            </p>
-          </div>
-        </div>
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200">
+        <p className="text-gray-700 leading-relaxed">
+          Découvrez des informations surprenantes sur la technologie, l'écologie numérique et l'impact de nos usages quotidiens.
+        </p>
       </div>
 
       {/* Facts Grid */}

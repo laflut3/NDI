@@ -279,8 +279,7 @@ function App() {
             onClick={() => setShowMultiplayerInfo(true)}
             className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
           >
-            <span>🌐</span>
-            <span>Multijoueur</span>
+            <span>Multiplayer Help</span>
             {remotePlayers.size > 0 && (
               <span className="bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full text-xs font-bold">
                 {remotePlayers.size}
