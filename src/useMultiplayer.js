@@ -47,8 +47,10 @@ export function useMultiplayer() {
             credential: "openrelayproject",
           },
         ],
-        iceTransportPolicy: "all", // Try all connection methods
-        iceCandidatePoolSize: 10,
+        iceTransportPolicy: "all",
+        iceCandidatePoolSize: 20,
+        rtcpMuxPolicy: "require",
+        bundlePolicy: "max-bundle",
       },
       debug: 2, // Enable debug logging to see connection issues
     });
@@ -208,14 +210,36 @@ export function useMultiplayer() {
       });
     });
 
+    // Set a timeout for ICE checking
+    const iceTimeout = setTimeout(() => {
+      if (!conn.open) {
+        console.error("⏱️ ICE negotiation timeout for", conn.peer);
+        conn.close();
+        connectionsRef.current.delete(conn.peer);
+        // Try reconnecting
+        setTimeout(() => {
+          if (roomPeersRef.current.has(conn.peer)) {
+            console.log("🔄 Retrying connection to", conn.peer);
+            connectToPeer(conn.peer);
+          }
+        }, 1000);
+      }
+    }, 15000); // 15 second timeout for ICE
+
     conn.on("iceStateChanged", (state) => {
       console.log("ICE state changed for", conn.peer, ":", state);
 
-      if (state === "disconnected") {
+      if (state === "connected" || state === "completed") {
+        // Clear timeout on successful connection
+        clearTimeout(iceTimeout);
+      } else if (state === "checking") {
+        console.log("🔍 ICE checking candidates for", conn.peer);
+      } else if (state === "disconnected") {
         console.log(
           "⚠️ Connection disconnected, attempting to reconnect to",
           conn.peer
         );
+        clearTimeout(iceTimeout);
         // Wait a bit before reconnecting
         setTimeout(() => {
           if (
@@ -229,14 +253,16 @@ export function useMultiplayer() {
           }
         }, 2000);
       } else if (state === "failed") {
-        console.error("❌ Connection failed with", conn.peer);
+        console.error("❌ ICE connection failed with", conn.peer);
+        clearTimeout(iceTimeout);
         connectionsRef.current.delete(conn.peer);
-        roomPeersRef.current.delete(conn.peer);
-        setRemotePlayers((prev) => {
-          const next = new Map(prev);
-          next.delete(conn.peer);
-          return next;
-        });
+        // Retry connection
+        setTimeout(() => {
+          if (roomPeersRef.current.has(conn.peer)) {
+            console.log("🔄 Retrying after ICE failure with", conn.peer);
+            connectToPeer(conn.peer);
+          }
+        }, 3000);
       }
     });
   };
