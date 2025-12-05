@@ -748,6 +748,13 @@ const OBSTACLES = [
 export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [], onPlayerPositionUpdate }) {
   const [npcData, setNpcData] = useState(new Map());
 
+  // Wrapper to handle player position and rotation updates
+  const handlePlayerUpdate = (position, rotation) => {
+    if (onPlayerPositionUpdate) {
+      onPlayerPositionUpdate(position, rotation);
+    }
+  };
+
   // Callback to collect NPC position and collision data from each NPC
   const handleGetNPCData = (npcId, data) => {
     setNpcData((prev) => {
@@ -934,7 +941,7 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
         obstacles={OBSTACLES}
         npcData={npcData}
         completedPOIs={completedPOIs}
-        onPositionUpdate={onPlayerPositionUpdate}
+        onPositionUpdate={handlePlayerUpdate}
       />
 
       {/* 3D Arrow indicator removed for performance - using 2D navigation arrow instead */}
