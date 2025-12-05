@@ -119,6 +119,30 @@ Maintenez **Espace** ou **Shift** pour activer le boost :
 - Niveau, XP, quêtes complétées et badges sont conservés
 - Bouton de réinitialisation disponible en haut à droite
 
+#### 🌐 Mode Multijoueur
+Jouez avec vos amis en temps réel grâce au système multijoueur peer-to-peer !
+
+**Comment jouer en multijoueur :**
+1. **Créer une partie** : Cliquez sur le bouton "🌐 Multiplayer" en bas à gauche, puis sélectionnez "Create Room"
+2. **Inviter des amis** : Partagez votre ID de session (affiché en haut du menu multijoueur)
+3. **Rejoindre une partie** : Entrez l'ID de session de votre ami et cliquez sur "Join"
+4. **Jouer ensemble** : Voyez les camions des autres joueurs se déplacer en temps réel sur le campus
+
+**Technologie** : Le mode multijoueur utilise **PeerJS** pour établir des connexions peer-to-peer (P2P) entre les joueurs via WebRTC, permettant une synchronisation fluide sans serveur central.
+
+**Accès rapide** : Cliquez sur le bouton "Multijoueur" en haut à droite pour consulter les instructions détaillées à tout moment.
+
+#### 🎵 Musique d'Ambiance
+Le jeu dispose d'une bande-son relaxante de type **Lounge Chill R&B** qui accompagne votre exploration du campus.
+
+**Contrôles de la musique :**
+- Cliquez sur le bouton "🔊 Musique" en haut à droite
+- Survolez pour afficher le panneau de contrôle du volume
+- Ajustez le volume de 0% à 100% selon vos préférences
+- La musique démarre automatiquement après votre première interaction (clic ou touche)
+
+**Musique libre de droits** : Lounge Chill R&B par Tunetank (via Pixabay Music)
+
 ---
 
 ## 🛠️ Stack Technique
@@ -130,11 +154,15 @@ Maintenez **Espace** ou **Shift** pour activer le boost :
 - **[@react-three/drei](https://github.com/pmndrs/drei)** - Utilitaires pour React Three Fiber
 - **[Three.js](https://threejs.org/)** - Bibliothèque 3D JavaScript
 - **[TailwindCSS](https://tailwindcss.com/)** - Framework CSS utility-first
+- **[PeerJS](https://peerjs.com/)** - Connexions peer-to-peer simplifiées pour le mode multijoueur
 
 ### API & Services
 - **[Google Gemini API](https://ai.google.dev/)** - Intelligence artificielle pour le chatbot
   - Modèle : `gemini-2.0-flash-lite-001`
   - Réponses humoristiques et décalées (fonctionnalité du jeu !)
+- **[PeerJS Server](https://peerjs.com/)** - Serveur de signalisation pour connexions P2P
+  - Serveur public : `0.peerjs.com`
+  - STUN/TURN servers pour traversée NAT
 
 ### Outils de Développement
 - **Vite HMR** - Hot Module Replacement pour un développement rapide
@@ -217,32 +245,38 @@ npm run preview
 ```
 nuit-de-linfo/
 ├── public/
-│   └── logo-anime.gif          # Logo animé pour l'écran de chargement
+│   ├── logo-anime.gif                  # Logo animé pour l'écran de chargement
+│   ├── lounge-chill-rnb-350126.mp3     # Musique de fond (Lounge Chill R&B)
+│   └── flyer.png                       # Image de présentation
 ├── src/
-│   ├── App.jsx                 # Composant principal et gestion d'état
-│   ├── GameScene.jsx           # Monde 3D, environnement et POIs
-│   ├── Player.jsx              # Physique du véhicule et contrôles
-│   ├── NPC.jsx                 # Personnages non-joueurs autonomes
-│   ├── Overlay.jsx             # Système de modales pour les POIs
-│   ├── Quiz.jsx                # Composant de quiz avec scoring
-│   ├── Chatbot.jsx             # Intégration du chatbot Gemini
-│   ├── QuestTracker.jsx        # Interface de suivi des quêtes
-│   ├── QuestSuccess.jsx        # Modal de succès de quête
-│   ├── IntroPopup.jsx          # Popup d'introduction au démarrage
-│   ├── LevelUp.jsx             # Modal de montée de niveau
-│   ├── Badges.jsx              # Affichage de la collection de badges
-│   ├── LoadingScreen.jsx       # Écran de chargement avec logo
-│   ├── ArrowIndicator.jsx      # Flèche 3D de navigation
-│   ├── NavigationArrow.jsx     # Boussole 2D de navigation
-│   ├── quizData.js             # Contenu des quiz
-│   ├── main.jsx                # Point d'entrée React
-│   └── index.css               # Styles Tailwind
-├── CLAUDE.md                   # Documentation technique
-├── README.md                   # Documentation (anglais)
-├── README_FR.md                # Documentation (français)
-├── package.json                # Dépendances du projet
-├── vite.config.js              # Configuration Vite
-└── tailwind.config.js          # Configuration Tailwind
+│   ├── App.jsx                         # Composant principal et gestion d'état
+│   ├── GameScene.jsx                   # Monde 3D, environnement et POIs
+│   ├── Player.jsx                      # Physique du véhicule et contrôles
+│   ├── NPC.jsx                         # Personnages non-joueurs autonomes
+│   ├── Overlay.jsx                     # Système de modales pour les POIs
+│   ├── Quiz.jsx                        # Composant de quiz avec scoring
+│   ├── Chatbot.jsx                     # Intégration du chatbot Gemini
+│   ├── QuestTracker.jsx                # Interface de suivi des quêtes
+│   ├── QuestSuccess.jsx                # Modal de succès de quête
+│   ├── IntroPopup.jsx                  # Popup d'introduction au démarrage
+│   ├── HowToPlay.jsx                   # Instructions de jeu
+│   ├── LevelUp.jsx                     # Modal de montée de niveau
+│   ├── Badges.jsx                      # Affichage de la collection de badges
+│   ├── LoadingScreen.jsx               # Écran de chargement avec logo
+│   ├── MusicPlayer.jsx                 # Lecteur de musique avec contrôle de volume
+│   ├── MultiplayerInfo.jsx             # Modal d'information multijoueur
+│   ├── RemotePlayers.jsx               # Rendu des joueurs distants en 3D
+│   ├── ArrowIndicator.jsx              # Flèche 3D de navigation
+│   ├── NavigationArrow.jsx             # Boussole 2D de navigation
+│   ├── useMultiplayer.js               # Hook personnalisé pour le multijoueur P2P
+│   ├── quizData.js                     # Contenu des quiz
+│   ├── main.jsx                        # Point d'entrée React
+│   └── index.css                       # Styles Tailwind
+├── CLAUDE.md                           # Documentation technique pour Claude Code
+├── README.md                           # Documentation complète (français)
+├── package.json                        # Dépendances du projet
+├── vite.config.js                      # Configuration Vite
+└── tailwind.config.js                  # Configuration Tailwind
 ```
 
 ---

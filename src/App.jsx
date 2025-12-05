@@ -11,6 +11,7 @@ import LevelUp from "./LevelUp";
 import Badges from "./Badges";
 import LoadingScreen from "./LoadingScreen";
 import MusicPlayer from "./MusicPlayer";
+import MultiplayerInfo from "./MultiplayerInfo";
 import { POIS } from "./GameScene";
 import { useMultiplayer } from "./useMultiplayer.js";
 
@@ -205,6 +206,9 @@ function App() {
   const [showBadges, setShowBadges] = useState(false);
   const [highlightBadgeId, setHighlightBadgeId] = useState(null);
 
+  // Multiplayer info modal state
+  const [showMultiplayerInfo, setShowMultiplayerInfo] = useState(false);
+
   // Level-up modal state
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpNumber, setLevelUpNumber] = useState(level);
@@ -264,17 +268,32 @@ function App() {
               </span>
             )}
           </button>
+
+          {/* Music Player */}
+          <div>
+            <MusicPlayer />
+          </div>
+
+          {/* Multiplayer Info Button */}
+          <button
+            onClick={() => setShowMultiplayerInfo(true)}
+            className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
+          >
+            <span>🌐</span>
+            <span>Multijoueur</span>
+            {remotePlayers.size > 0 && (
+              <span className="bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full text-xs font-bold">
+                {remotePlayers.size}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={resetProgress}
             className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
           >
             <span>Réinitialiser</span>
           </button>
-
-          {/* Music Player - positioned under buttons */}
-          <div className="mt-1">
-            <MusicPlayer />
-          </div>
         </div>
       </div>
 
@@ -742,6 +761,16 @@ function App() {
             setHighlightBadgeId(null);
           }}
           highlightId={highlightBadgeId}
+        />
+      )}
+
+      {/* Multiplayer Info Modal */}
+      {showMultiplayerInfo && (
+        <MultiplayerInfo
+          onClose={() => setShowMultiplayerInfo(false)}
+          myPeerId={myPeerId}
+          isConnected={isConnected}
+          remotePlayers={remotePlayers}
         />
       )}
 

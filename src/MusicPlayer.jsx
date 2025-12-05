@@ -53,7 +53,7 @@ export default function MusicPlayer() {
         loop
         preload="auto"
       >
-        <source src="/background-music.mp3" type="audio/mpeg" />
+        <source src="/lounge-chill-rnb-350126.mp3" type="audio/mpeg" />
       </audio>
 
       {/* Contrôle de volume */}
@@ -82,7 +82,7 @@ export default function MusicPlayer() {
                 {/* Titre */}
                 <div className="text-center">
                   <p className="text-sm font-bold text-gray-800">Volume de la Musique</p>
-                  <p className="text-xs text-gray-500">Bensound - Sci-Fi</p>
+                  <p className="text-xs text-gray-500">Lounge Chill R&B</p>
                 </div>
 
                 {/* Contrôle du volume */}
