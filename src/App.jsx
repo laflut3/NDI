@@ -8,6 +8,7 @@ import QuestTracker from './QuestTracker'
 import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
+import LoadingScreen from './LoadingScreen'
 import { POIS } from './GameScene'
 
 // Define keyboard control mappings
@@ -64,6 +65,36 @@ function App() {
 
   // Locked POI notification
   const [lockedMessage, setLockedMessage] = useState(null)
+
+  // Loading screen state (only shown on initial load)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isFadingOut, setIsFadingOut] = useState(false)
+  const [logoLoaded, setLogoLoaded] = useState(false)
+
+  // Handle when logo finishes loading
+  const handleLogoLoaded = () => {
+    setLogoLoaded(true)
+  }
+
+  // Hide loading screen after GIF animation completes with fade-out
+  useEffect(() => {
+    if (!logoLoaded) return // Don't start timers until logo is loaded
+
+    // Start fade-out animation at 5 seconds (allow full GIF animation to play)
+    const fadeTimer = setTimeout(() => {
+      setIsFadingOut(true)
+    }, 5000)
+
+    // Remove loading screen completely at 5.6 seconds (after fade-out)
+    const hideTimer = setTimeout(() => {
+      setIsLoading(false)
+    }, 5600)
+
+    return () => {
+      clearTimeout(fadeTimer)
+      clearTimeout(hideTimer)
+    }
+  }, [logoLoaded])
 
   // Listen for locked POI events
   useEffect(() => {
@@ -138,6 +169,9 @@ function App() {
 
   return (
     <div className="w-full h-full relative">
+      {/* Loading Screen - Only shown on initial load */}
+      {isLoading && <LoadingScreen isFadingOut={isFadingOut} onLogoLoaded={handleLogoLoaded} />}
+
       {/* Game Title Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-6">
         <h1 className="text-3xl font-bold text-white text-center drop-shadow-lg">
