@@ -53,7 +53,7 @@ const SECONDARY_QUESTS = [
 ]
 
 export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest }) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false) // Start collapsed
   const [hoveredQuest, setHoveredQuest] = useState(null)
 
   // Determine quest status
@@ -99,26 +99,26 @@ export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest
   }
 
   return (
-    <div className="fixed top-20 left-4 z-20 max-w-md">
-      {/* Toggle Button */}
+    <div className="fixed top-20 left-2 sm:left-4 z-20 max-w-xs sm:max-w-sm">
+      {/* Toggle Button - SMALLER */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="mb-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 font-semibold"
+        className="mb-1 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 font-semibold text-sm"
       >
-        <span className="text-xl">📋</span>
+        <span className="text-base">📋</span>
         <span>Quêtes</span>
         <span className="text-xs ml-auto">{isExpanded ? '▼' : '▶'}</span>
       </button>
 
       {isExpanded && (
-        <div className="bg-black/70 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/20">
-          {/* Main Quest Section */}
-          <div className="mb-4">
-            <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2 border-b border-white/20 pb-2">
-              <span className="text-yellow-400">⭐</span>
+        <div className="bg-black/70 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-xl border border-white/20">
+          {/* Main Quest Section - SMALLER */}
+          <div className="mb-2">
+            <h3 className="text-white font-bold text-xs mb-2 flex items-center gap-1.5 border-b border-white/20 pb-1.5">
+              <span className="text-yellow-400 text-sm">⭐</span>
               <span>QUÊTE PRINCIPALE</span>
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {MAIN_QUESTS.map((quest) => {
                 const status = getQuestStatus(quest)
                 const isClickable = status === 'available' || status === 'active'
@@ -131,32 +131,32 @@ export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest
                     onMouseLeave={() => setHoveredQuest(null)}
                     disabled={status === 'locked' || status === 'completed'}
                     className={`
-                      w-full text-left p-3 rounded-lg border-2 transition-all duration-200
-                      ${isClickable ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'cursor-not-allowed opacity-60'}
+                      w-full text-left p-2 rounded-md border transition-all duration-200
+                      ${isClickable ? 'cursor-pointer hover:scale-102 hover:shadow-md' : 'cursor-not-allowed opacity-60'}
                       ${status === 'active' ? 'border-yellow-400 bg-yellow-500/20' : 'border-white/20'}
                       ${hoveredQuest === quest.id && isClickable ? 'bg-white/10' : 'bg-white/5'}
                     `}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Quest Icon */}
+                    <div className="flex items-start gap-2">
+                      {/* Quest Icon - SMALLER */}
                       <div className={`
-                        flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${getStatusColor(status)}
-                        flex items-center justify-center text-xl shadow-lg
+                        flex-shrink-0 w-7 h-7 rounded-md bg-gradient-to-br ${getStatusColor(status)}
+                        flex items-center justify-center text-sm shadow-md
                       `}>
                         {quest.icon}
                       </div>
 
-                      {/* Quest Info */}
+                      {/* Quest Info - SMALLER */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-white font-semibold text-sm truncate">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <h4 className="text-white font-semibold text-xs truncate">
                             {quest.name}
                           </h4>
                           <span className="flex-shrink-0 text-xs">
                             {getStatusIcon(status)}
                           </span>
                         </div>
-                        <p className="text-white/70 text-xs line-clamp-2">
+                        <p className="text-white/70 text-xs line-clamp-1">
                           {quest.description}
                         </p>
                         {status === 'completed' && (
@@ -177,45 +177,35 @@ export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest
                       </div>
                     </div>
 
-                    {/* Hover Tooltip */}
-                    {hoveredQuest === quest.id && isClickable && (
-                      <div className="mt-2 pt-2 border-t border-white/20">
-                        <p className="text-cyan-300 text-xs font-semibold">
-                          Cliquez pour naviguer vers cette quête
-                        </p>
-                      </div>
-                    )}
+                    {/* Hover Tooltip - REMOVED for space */}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Secondary Quests Section */}
+          {/* Secondary Quests Section - SMALLER */}
           <div>
-            <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2 border-b border-white/20 pb-2">
-              <span className="text-blue-400">✦</span>
-              <span>QUÊTES SECONDAIRES</span>
+            <h3 className="text-white font-bold text-xs mb-2 flex items-center gap-1.5 border-b border-white/20 pb-1.5">
+              <span className="text-blue-400 text-sm">✦</span>
+              <span>SECONDAIRES</span>
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {SECONDARY_QUESTS.map((quest) => (
                 <div
                   key={quest.id}
-                  className="p-3 rounded-lg bg-white/5 border-2 border-white/10 opacity-50 cursor-not-allowed"
+                  className="p-2 rounded-md bg-white/5 border border-white/10 opacity-50 cursor-not-allowed"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-xl shadow-lg">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-xs shadow-md">
                       {quest.icon}
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-white font-semibold text-sm mb-1">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-white font-semibold text-xs mb-0.5 truncate">
                         {quest.name}
                       </h4>
-                      <p className="text-white/70 text-xs mb-1">
-                        {quest.description}
-                      </p>
                       <span className="text-purple-400 text-xs italic">
-                        Bientôt disponible...
+                        Bientôt...
                       </span>
                     </div>
                   </div>

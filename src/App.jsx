@@ -66,8 +66,15 @@ function App() {
   // Locked POI notification
   const [lockedMessage, setLockedMessage] = useState(null)
 
-  // Player position for navigation arrow
+  // Player position and rotation for navigation arrow
   const [playerPosition, setPlayerPosition] = useState([0, 0.75, 5])
+  const [playerRotation, setPlayerRotation] = useState(0)
+
+  // Handler for player updates (position and rotation)
+  const handlePlayerUpdate = (position, rotation) => {
+    setPlayerPosition(position)
+    setPlayerRotation(rotation)
+  }
 
   // Listen for locked POI events
   useEffect(() => {
@@ -234,7 +241,7 @@ function App() {
             onPOITrigger={setActivePOI}
             currentQuest={currentQuest}
             completedPOIs={completedPOIs}
-            onPlayerPositionUpdate={setPlayerPosition}
+            onPlayerPositionUpdate={handlePlayerUpdate}
           />
         </Canvas>
       </KeyboardControls>
@@ -453,6 +460,7 @@ function App() {
         return showNavigation ? (
           <NavigationArrow
             playerPosition={playerPosition}
+            playerRotation={playerRotation}
             targetPosition={targetPOI.position}
             targetName={targetPOI.title}
           />

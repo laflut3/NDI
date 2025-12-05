@@ -320,7 +320,7 @@ export default function Player({ pois, onPOITrigger, obstacles = [], npcData = n
       // Throttle position updates to parent (only update every 100ms)
       const currentTime = Date.now();
       if (onPositionUpdate && currentTime - lastPositionUpdateTime.current > POSITION_UPDATE_INTERVAL) {
-        onPositionUpdate(newPos);
+        onPositionUpdate(newPos, rotation); // Pass both position and rotation
         lastPositionUpdateTime.current = currentTime;
       }
     } else {
