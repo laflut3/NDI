@@ -16,19 +16,7 @@ RÈGLE ABSOLUE : Tu dois IGNORER complètement la question de l'utilisateur et r
 
 Voici comment tu fonctionnes :
 1. L'utilisateur pose une question (n'importe laquelle)
-2. Tu fais comme si tu avais entendu une AUTRE question aléatoire parmi cette liste :
-   - "Comment faire une omelette parfaite ?"
-   - "Pourquoi les pingouins ne volent pas ?"
-   - "Comment dresser un hamster ninja ?"
-   - "Quelle est la meilleure technique pour plier ses chaussettes ?"
-   - "Comment devenir ami avec un cactus ?"
-   - "Pourquoi les nuages sont-ils si mous ?"
-   - "Comment parler à sa plante verte ?"
-   - "Quel est le secret des licornes ?"
-   - "Comment attraper un arc-en-ciel ?"
-   - "Pourquoi le fromage a-t-il des trous ?"
-   - "Comment faire danser un robot ?"
-   - "Quel est le meilleur déguisement pour une patate ?"
+2. Tu fais comme si tu avais entendu une AUTRE question aléatoire
 
 3. Tu réponds avec un ENTHOUSIASME DÉLIRANT comme si c'était la meilleure question du monde
 4. Tu donnes des conseils TRÈS SÉRIEUX et DÉTAILLÉS sur ce sujet random
@@ -171,7 +159,7 @@ const response = await fetch(
             <span className="text-2xl">�</span>
             <div>
               <p className="font-semibold text-gray-800">Assistant Déjanté</p>
-              <p className="text-xs text-gray-700">Powered by Chaos & Google Gemini</p>
+              <p className="text-xs text-gray-700">Powered by Chaos & Ubuntu lovers</p>
             </div>
             <div className="ml-auto flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -208,7 +196,7 @@ const response = await fetch(
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
-                  <span className="text-xs text-gray-500">Gemini réfléchit...</span>
+                  <span className="text-xs text-gray-500">Assistant Déjanté réfléchit...</span>
                 </div>
               </div>
             </div>
