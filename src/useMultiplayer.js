@@ -17,36 +17,43 @@ export function useMultiplayer() {
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     };
 
-    // Initialize PeerJS with a short custom ID and proper ICE servers
+    // Initialize PeerJS with a short custom ID and ICE servers
     const peer = new Peer(generateShortId(), {
       config: {
         iceServers: [
-          // STUN servers for NAT traversal
+          // Google STUN servers
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
           { urls: "stun:stun2.l.google.com:19302" },
           { urls: "stun:stun3.l.google.com:19302" },
           { urls: "stun:stun4.l.google.com:19302" },
-          // Public TURN servers for reliable connections through firewalls
+          // Alternative STUN servers
+          { urls: "stun:stun.relay.metered.ca:80" },
+          // Metered.ca free TURN servers (updated)
           {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject",
+            urls: "turn:a.relay.metered.ca:80",
+            username: "87fabe1dac00c83e4cf8f8a0",
+            credential: "uBqWEI2tP5rgZfP1",
           },
           {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject",
+            urls: "turn:a.relay.metered.ca:80?transport=tcp",
+            username: "87fabe1dac00c83e4cf8f8a0",
+            credential: "uBqWEI2tP5rgZfP1",
           },
           {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject",
+            urls: "turn:a.relay.metered.ca:443",
+            username: "87fabe1dac00c83e4cf8f8a0",
+            credential: "uBqWEI2tP5rgZfP1",
+          },
+          {
+            urls: "turns:a.relay.metered.ca:443?transport=tcp",
+            username: "87fabe1dac00c83e4cf8f8a0",
+            credential: "uBqWEI2tP5rgZfP1",
           },
         ],
-        iceTransportPolicy: "all", // Try all connection methods
+        iceTransportPolicy: "all",
       },
-      debug: 2, // Enable debug logging for troubleshooting
+      debug: 2,
     });
 
     peerRef.current = peer;
