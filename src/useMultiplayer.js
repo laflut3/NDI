@@ -17,43 +17,14 @@ export function useMultiplayer() {
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     };
 
-    // Initialize PeerJS with a short custom ID and ICE servers
+    // Initialize PeerJS with a short custom ID
     const peer = new Peer(generateShortId(), {
       config: {
         iceServers: [
-          // Google STUN servers
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
-          { urls: "stun:stun2.l.google.com:19302" },
-          { urls: "stun:stun3.l.google.com:19302" },
-          { urls: "stun:stun4.l.google.com:19302" },
-          // Alternative STUN servers
-          { urls: "stun:stun.relay.metered.ca:80" },
-          // Metered.ca free TURN servers (updated)
-          {
-            urls: "turn:a.relay.metered.ca:80",
-            username: "87fabe1dac00c83e4cf8f8a0",
-            credential: "uBqWEI2tP5rgZfP1",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:80?transport=tcp",
-            username: "87fabe1dac00c83e4cf8f8a0",
-            credential: "uBqWEI2tP5rgZfP1",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:443",
-            username: "87fabe1dac00c83e4cf8f8a0",
-            credential: "uBqWEI2tP5rgZfP1",
-          },
-          {
-            urls: "turns:a.relay.metered.ca:443?transport=tcp",
-            username: "87fabe1dac00c83e4cf8f8a0",
-            credential: "uBqWEI2tP5rgZfP1",
-          },
         ],
-        iceTransportPolicy: "all",
       },
-      debug: 2,
     });
 
     peerRef.current = peer;
