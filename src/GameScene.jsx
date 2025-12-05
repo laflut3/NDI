@@ -4,6 +4,7 @@ import { useTexture } from "@react-three/drei";
 import { Matrix4 } from "three";
 import Player from "./Player";
 import NPC from "./NPC";
+import RemotePlayers from "./RemotePlayers";
 import { QUIZ_DATA } from "./quizData";
 
 // Animated arrow that points to quest target
@@ -868,23 +869,29 @@ const OBSTACLES = [
   { x: -32, z: 8, width: 2.5, depth: 2.5 },
 ];
 
-export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [] }) {
+export default function GameScene({
+  onPOITrigger,
+  currentQuest = "quest1",
+  completedPOIs = [],
+  broadcastPosition,
+  remotePlayers,
+}) {
   const [npcData, setNpcData] = useState(new Map());
 
   // Map quest IDs to POI IDs
   const QUEST_TO_POI = {
-    'quest1': 'quiz1',
-    'quest2': 'quiz2',
-    'quest3': 'quiz3',
-    'quest4': 'quiz4',
-    'side1': 'funfact',
-    'side2': 'chatbot',
-    'side3': 'video'
+    quest1: "quiz1",
+    quest2: "quiz2",
+    quest3: "quiz3",
+    quest4: "quiz4",
+    side1: "funfact",
+    side2: "chatbot",
+    side3: "video",
   };
 
   // Get the target POI for the current quest
   const targetPOIId = QUEST_TO_POI[currentQuest];
-  const targetPOI = POIS.find(poi => poi.id === targetPOIId);
+  const targetPOI = POIS.find((poi) => poi.id === targetPOIId);
   const showArrow = targetPOI && !completedPOIs.includes(targetPOIId);
 
   // Callback to collect NPC position and collision data from each NPC
@@ -1076,12 +1083,14 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
         obstacles={OBSTACLES}
         npcData={npcData}
         completedPOIs={completedPOIs}
+        onPositionUpdate={broadcastPosition}
       />
 
+      {/* Remote Players */}
+      <RemotePlayers remotePlayers={remotePlayers} />
+
       {/* Arrow indicator above target POI */}
-      {showArrow && targetPOI && (
-        <QuestArrow position={targetPOI.position} />
-      )}
+      {showArrow && targetPOI && <QuestArrow position={targetPOI.position} />}
 
       {/* 3D Arrow indicator removed for performance - using 2D navigation arrow instead */}
     </>
