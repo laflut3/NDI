@@ -17,14 +17,22 @@ export function useMultiplayer() {
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     };
 
-    // Initialize PeerJS with a short custom ID
+    // Initialize PeerJS with a short custom ID and public server
     const peer = new Peer(generateShortId(), {
+      host: "0.peerjs.com",
+      port: 443,
+      path: "/",
+      secure: true,
       config: {
         iceServers: [
           { urls: "stun:stun.l.google.com:19302" },
           { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:stun2.l.google.com:19302" },
+          { urls: "stun:stun3.l.google.com:19302" },
+          { urls: "stun:stun4.l.google.com:19302" },
         ],
       },
+      debug: 2, // Enable debug logging to see connection issues
     });
 
     peerRef.current = peer;
