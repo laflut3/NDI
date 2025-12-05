@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
 import { Matrix4 } from "three";
 import Player from "./Player";
 import NPC from "./NPC";
@@ -145,6 +146,7 @@ export const POIS = [
       heading: "Femme et Informatique",
       description: "Découvrez l'importance de la diversité dans le numérique",
       videoUrl: "https://www.youtube.com/embed/r36BMACQ29Q",
+      flyerUrl: "/flyer.png", // Added flyer image
     },
   },
 ];
@@ -480,6 +482,76 @@ function DirectionalSign({ position, text, pointsTo }) {
       </mesh>
     </group>
   );
+}
+
+// Billboard component - MASSIVE street-style advertising board
+function Billboard({ position, rotation = 0 }) {
+  const texture = useTexture('/flyer.png')
+
+  // Configure texture for better quality
+  if (texture) {
+    texture.anisotropy = 16 // Higher quality filtering
+  }
+
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Left support post - MASSIVE */}
+      <mesh position={[-8, 6, 0]} castShadow>
+        <cylinderGeometry args={[0.4, 0.4, 12, 8]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      </mesh>
+
+      {/* Right support post - MASSIVE */}
+      <mesh position={[8, 6, 0]} castShadow>
+        <cylinderGeometry args={[0.4, 0.4, 12, 8]} />
+        <meshStandardMaterial color="#2c3e50" metalness={0.7} />
+      </mesh>
+
+      {/* Billboard frame - MASSIVE SIZE */}
+      <mesh position={[0, 13, 0]} castShadow receiveShadow>
+        <boxGeometry args={[18, 10, 0.4]} />
+        <meshStandardMaterial color="#1a1a1a" />
+      </mesh>
+
+      {/* Billboard poster/flyer - FRONT SIDE (MASSIVE) */}
+      <mesh position={[0, 13, 0.21]}>
+        <planeGeometry args={[17, 9.4]} />
+        <meshStandardMaterial
+          map={texture}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Billboard poster/flyer - BACK SIDE (MASSIVE) */}
+      <mesh position={[0, 13, -0.21]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[17, 9.4]} />
+        <meshStandardMaterial
+          map={texture}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Spotlight pointing at billboard - FRONT */}
+      <spotLight
+        position={[0, 18, 3]}
+        angle={0.7}
+        penumbra={0.5}
+        intensity={2}
+        castShadow
+        target-position={[0, 13, 0]}
+      />
+
+      {/* Spotlight pointing at billboard - BACK */}
+      <spotLight
+        position={[0, 18, -3]}
+        angle={0.7}
+        penumbra={0.5}
+        intensity={2}
+        castShadow
+        target-position={[0, 13, 0]}
+      />
+    </group>
+  )
 }
 
 // Fountain/central plaza
@@ -978,6 +1050,9 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
       <ServerRack position={[2, 0, -28]} />
       <DisplayBoard position={[-2, 0, -32]} rotation={Math.PI / 2} />
       <InfoKiosk position={[2, 0, -32]} />
+
+      {/* Around Video POI (🎬 Femme et Informatique) at [35, 0.5, 5] */}
+      <Billboard position={[38, 0, 5]} rotation={Math.PI / 2} />
 
       {/* POI Markers */}
       {POIS.map((poi) => (

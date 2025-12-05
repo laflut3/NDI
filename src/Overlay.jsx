@@ -333,6 +333,29 @@ function VideoContent({ poiData }) {
         />
       </div>
 
+      {/* Flyer Display - if available */}
+      {poiData.content.flyerUrl && (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="text-3xl">📄</div>
+            <div>
+              <h5 className="font-bold text-gray-800 mb-2">Flyer de l'Événement</h5>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Découvrez plus d'informations sur cet événement
+              </p>
+            </div>
+          </div>
+          {/* Flyer Image */}
+          <div className="bg-white p-2 rounded-xl shadow-lg">
+            <img
+              src={poiData.content.flyerUrl}
+              alt="Flyer événement"
+              className="w-full h-auto rounded-lg"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Additional Info */}
       <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-xl border-2 border-pink-200">
         <div className="flex items-start gap-4">
