@@ -277,11 +277,11 @@ function App() {
           {/* Multiplayer Info Button */}
           <button
             onClick={() => setShowMultiplayerInfo(true)}
-            className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
+            className="bg-white/10 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 min-w-[160px] max-w-[280px] w-full sm:w-auto"
           >
-            <span>Multiplayer Help</span>
+            <span className="text-sm sm:text-base whitespace-nowrap">Multiplayer Help</span>
             {remotePlayers.size > 0 && (
-              <span className="bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full text-xs font-bold">
+              <span className="bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0">
                 {remotePlayers.size}
               </span>
             )}
