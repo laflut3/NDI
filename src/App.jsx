@@ -65,10 +65,15 @@ function App() {
     myPeerId,
     isConnected,
     remotePlayers,
+    currentRoom,
     connectToPeer,
     broadcastPosition,
+    joinRoom,
+    leaveRoom,
+    createRoom,
   } = useMultiplayer();
   const [peerIdInput, setPeerIdInput] = useState("");
+  const [roomIdInput, setRoomIdInput] = useState("");
   const [showMultiplayerMenu, setShowMultiplayerMenu] = useState(false);
 
   // Player level
@@ -324,37 +329,134 @@ function App() {
               </div>
             )}
 
-            <div className="text-xs mb-3">
+            {/* Current Room Status */}
+            {currentRoom && (
+              <div className="mb-3 p-2 bg-green-900/30 border border-green-600 rounded">
+                <div className="text-xs mb-1">
+                  <span className="font-semibold text-green-400">
+                    🏠 In Room
+                  </span>
+                </div>
+                <div className="bg-gray-700 p-1 rounded break-all font-mono text-[10px] text-green-300 mb-2">
+                  {currentRoom}
+                </div>
+                <button
+                  onClick={leaveRoom}
+                  className="w-full px-2 py-1 text-xs bg-red-600 hover:bg-red-700 rounded font-semibold transition-colors"
+                >
+                  Leave Room
+                </button>
+              </div>
+            )}
+
+            <div className="text-xs mb-2">
               <span className="font-semibold">Connected Players:</span>{" "}
               {remotePlayers.size}
             </div>
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={peerIdInput}
-                onChange={(e) => setPeerIdInput(e.target.value)}
-                placeholder="Enter Peer ID"
-                className="flex-1 px-2 py-1 text-xs rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && peerIdInput.trim()) {
-                    connectToPeer(peerIdInput.trim());
-                    setPeerIdInput("");
-                  }
-                }}
-              />
-              <button
-                onClick={() => {
-                  if (peerIdInput.trim()) {
-                    connectToPeer(peerIdInput.trim());
-                    setPeerIdInput("");
-                  }
-                }}
-                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors"
-              >
-                Connect
-              </button>
-            </div>
+            {/* List of connected players */}
+            {remotePlayers.size > 0 && (
+              <div className="mb-3 max-h-24 overflow-y-auto">
+                <div className="bg-gray-800 rounded p-2 space-y-1">
+                  {Array.from(remotePlayers.keys()).map((peerId) => (
+                    <div
+                      key={peerId}
+                      className="flex items-center gap-2 text-[10px] font-mono text-cyan-400"
+                    >
+                      <span className="text-green-400">●</span>
+                      <span className="truncate flex-1" title={peerId}>
+                        {peerId.substring(0, 12)}...
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!currentRoom && (
+              <>
+                {/* Room System */}
+                <div className="mb-3 p-2 bg-blue-900/20 border border-blue-600 rounded">
+                  <div className="text-xs font-semibold mb-2 text-blue-300">
+                    🏠 Room System
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const roomId = createRoom();
+                      if (roomId) {
+                        setRoomIdInput(roomId);
+                      }
+                    }}
+                    className="w-full px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 rounded font-semibold transition-colors mb-2"
+                  >
+                    Create Room
+                  </button>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={roomIdInput}
+                      onChange={(e) => setRoomIdInput(e.target.value)}
+                      placeholder="Room ID"
+                      className="flex-1 px-2 py-1 text-xs rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && roomIdInput.trim()) {
+                          joinRoom(roomIdInput.trim());
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (roomIdInput.trim()) {
+                          joinRoom(roomIdInput.trim());
+                        }
+                      }}
+                      className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded font-semibold transition-colors"
+                    >
+                      Join
+                    </button>
+                  </div>
+
+                  <div className="mt-2 text-[10px] text-gray-400">
+                    Create & share Room ID, or join existing room
+                  </div>
+                </div>
+
+                {/* Manual P2P */}
+                <details className="text-xs text-gray-400">
+                  <summary className="cursor-pointer hover:text-white">
+                    Advanced
+                  </summary>
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="text"
+                      value={peerIdInput}
+                      onChange={(e) => setPeerIdInput(e.target.value)}
+                      placeholder="Peer ID"
+                      className="flex-1 px-2 py-1 text-xs rounded bg-gray-700 text-white border border-gray-600"
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" && peerIdInput.trim()) {
+                          connectToPeer(peerIdInput.trim());
+                          setPeerIdInput("");
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (peerIdInput.trim()) {
+                          connectToPeer(peerIdInput.trim());
+                          setPeerIdInput("");
+                        }
+                      }}
+                      className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 rounded"
+                    >
+                      Connect
+                    </button>
+                  </div>
+                </details>
+              </>
+            )}
           </div>
         )}
       </div>
