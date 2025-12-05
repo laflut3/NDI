@@ -110,15 +110,14 @@ export default function QuestTracker({ completedPOIs, onQuestClick, currentQuest
   }
 
   return (
-    <div className="fixed top-20 left-2 sm:left-4 z-20 max-w-xs sm:max-w-sm">
-      {/* Toggle Button - SMALLER */}
+    <div className="fixed top-6 left-6 z-20 max-w-xs sm:max-w-sm">
+      {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="mb-1 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all flex items-center gap-2 font-semibold text-sm"
+        className="mb-1 px-4 py-2 bg-white/10 backdrop-blur-sm text-white rounded-md hover:bg-white/20 transition-all flex items-center gap-2 font-semibold"
       >
-        <span className="text-base">📋</span>
         <span>Quêtes</span>
-        <span className="text-xs ml-auto">{isExpanded ? '▼' : '▶'}</span>
+        <span className="text-xs ml-2">{isExpanded ? '▼' : '▶'}</span>
       </button>
 
       {isExpanded && (

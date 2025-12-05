@@ -10,6 +10,7 @@ import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
 import LoadingScreen from './LoadingScreen'
+import MusicPlayer from './MusicPlayer'
 import { POIS } from './GameScene'
 
 // Define keyboard control mappings
@@ -181,12 +182,10 @@ function App() {
       {/* Loading Screen - Only shown on initial load */}
       {isLoading && <LoadingScreen isFadingOut={isFadingOut} onLogoLoaded={handleLogoLoaded} />}
 
-      {/* Game Title Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-6">
-        <h1 className="text-3xl font-bold text-white text-center drop-shadow-lg">
-          🐧 La Confrérie du Manchot
-        </h1>
-        <div className="absolute right-6 top-4 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-md text-white font-semibold w-52">
+      {/* Top right UI - Level and Buttons */}
+      <div className="absolute top-6 right-6 z-10 flex flex-col gap-3">
+        {/* Level Display */}
+        <div className="bg-white/10 backdrop-blur-sm px-3 py-2 rounded-md text-white font-semibold w-52">
           <div className="flex items-center justify-between mb-1">
             <span>Niveau {level}</span>
             <span className="text-xs">{xpProgress}/{xpNeededForLevel(level)}</span>
@@ -198,31 +197,32 @@ function App() {
             />
           </div>
         </div>
-        {/* Badges and Reset buttons */}
-        <div className="absolute right-6 top-20 flex flex-col gap-2">
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2">
           <button
             onClick={() => setShowBadges(true)}
-            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-lg flex items-center gap-2 font-semibold"
+            className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
           >
-            <span className="text-xl">🏆</span>
             <span>Badges</span>
             {badges.length > 0 && (
-              <span className="bg-white text-orange-600 px-2 py-0.5 rounded-full text-xs font-bold">
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-bold">
                 {badges.length}
               </span>
             )}
           </button>
           <button
             onClick={resetProgress}
-            className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 shadow-lg flex items-center gap-2 font-semibold text-sm"
+            className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-md text-white font-semibold hover:bg-white/20 transition-all duration-200 flex items-center justify-center gap-2 w-52"
           >
-            <span className="text-lg">🔄</span>
             <span>Réinitialiser</span>
           </button>
+
+          {/* Music Player - positioned under buttons */}
+          <div className="mt-1">
+            <MusicPlayer />
+          </div>
         </div>
-        <p className="text-white/90 text-center mt-2 text-sm">
-          Conduis ton camion de réparation à travers le campus. Complète les quiz et libère les machines !
-        </p>
       </div>
 
       {/* Controls Guide */}
@@ -487,13 +487,12 @@ function App() {
         }} />
       )}
 
-      {/* Quest Tracker */}
+      {/* Quest Tracker - Always visible on left */}
       <QuestTracker
         completedPOIs={completedPOIs}
         currentQuest={currentQuest}
         onQuestClick={handleQuestClick}
       />
-
 
       {/* Locked POI Notification */}
       {lockedMessage && (
