@@ -4,6 +4,7 @@ import { KeyboardControls } from '@react-three/drei'
 import GameScene from './GameScene'
 import Overlay from './Overlay'
 import IntroPopup from './IntroPopup'
+import HowToPlay from './HowToPlay'
 import QuestTracker from './QuestTracker'
 import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
@@ -36,13 +37,14 @@ function App() {
           completedPOIs: data.completedPOIs || [],
           badges: data.badges || [],
           currentQuest: data.currentQuest || 'quest1',
-          showIntro: data.showIntro !== undefined ? data.showIntro : true
+          showIntro: data.showIntro !== undefined ? data.showIntro : true,
+          showHowToPlay: data.showHowToPlay !== undefined ? data.showHowToPlay : true
         }
       }
     } catch (e) {
       console.error('Error loading game state:', e)
     }
-    return { level: 1, xpProgress: 0, completedPOIs: [], badges: [], currentQuest: 'quest1', showIntro: true }
+    return { level: 1, xpProgress: 0, completedPOIs: [], badges: [], currentQuest: 'quest1', showIntro: true, showHowToPlay: true }
   }
 
   const initialState = loadGameState()
@@ -57,6 +59,10 @@ function App() {
   const [badges, setBadges] = useState(initialState.badges)
   // State for showing intro popup
   const [showIntro, setShowIntro] = useState(initialState.showIntro)
+  // State for showing how to play popup (tracks if it should be shown after intro)
+  const [shouldShowHowToPlay, setShouldShowHowToPlay] = useState(initialState.showHowToPlay)
+  // State to control actual display of how to play popup
+  const [showHowToPlay, setShowHowToPlay] = useState(false)
   // Current quest being tracked
   const [currentQuest, setCurrentQuest] = useState(initialState.currentQuest)
   // Quest success modal
@@ -118,13 +124,14 @@ function App() {
         badges,
         currentQuest,
         showIntro,
+        showHowToPlay: shouldShowHowToPlay,
         lastSaved: Date.now()
       }
       localStorage.setItem('ndi_game_state', JSON.stringify(gameState))
     } catch (e) {
       console.error('Error saving game state:', e)
     }
-  }, [level, xpProgress, completedPOIs, badges, currentQuest, showIntro])
+  }, [level, xpProgress, completedPOIs, badges, currentQuest, showIntro, shouldShowHowToPlay])
 
   // Reset progress function
   const resetProgress = () => {
@@ -136,6 +143,8 @@ function App() {
       setBadges([])
       setCurrentQuest('quest1')
       setShowIntro(true)
+      setShouldShowHowToPlay(true)
+      setShowHowToPlay(false)
     }
   }
 
@@ -461,7 +470,21 @@ function App() {
 
       {/* Intro Popup */}
       {showIntro && (
-        <IntroPopup onClose={() => setShowIntro(false)} />
+        <IntroPopup onClose={() => {
+          setShowIntro(false)
+          // Show how to play popup only if it's the first time
+          if (shouldShowHowToPlay) {
+            setShowHowToPlay(true)
+          }
+        }} />
+      )}
+
+      {/* How to Play Popup */}
+      {showHowToPlay && (
+        <HowToPlay onClose={() => {
+          setShowHowToPlay(false)
+          setShouldShowHowToPlay(false) // Mark as shown, won't show again
+        }} />
       )}
 
       {/* Quest Tracker */}
