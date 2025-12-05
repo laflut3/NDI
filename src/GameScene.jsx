@@ -1,8 +1,44 @@
 import { useRef, useEffect, useState } from "react";
+import { useFrame } from "@react-three/fiber";
 import { Matrix4 } from "three";
 import Player from "./Player";
 import NPC from "./NPC";
 import { QUIZ_DATA } from "./quizData";
+
+// Animated arrow that points to quest target
+function QuestArrow({ position }) {
+  const meshRef = useRef();
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      // Bounce up and down
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.3;
+      // Slow rotation
+      meshRef.current.rotation.y = state.clock.elapsedTime;
+    }
+  });
+
+  return (
+    <group position={[position[0], position[1] + 4, position[2]]}>
+      <mesh ref={meshRef}>
+        {/* Downward pointing cone (arrow) */}
+        <coneGeometry args={[0.6, 1.8, 8]} />
+        <meshStandardMaterial
+          color="#ffff00"
+          emissive="#ffff00"
+          emissiveIntensity={1}
+        />
+      </mesh>
+      {/* Glowing light */}
+      <pointLight
+        position={[0, 0, 0]}
+        color="#ffff00"
+        intensity={3}
+        distance={10}
+      />
+    </group>
+  );
+}
 
 // POI data with positions and content
 export const POIS = [
@@ -94,6 +130,21 @@ export const POIS = [
         "💸 Le Coût Caché des Big Tech : Les établissements scolaires font face à un 'empire numérique puissant' non seulement à cause de l'obsolescence, mais aussi à cause des licences logicielles coûteuses, des abonnements indispensables, et du stockage de données hors Union Européenne (UE). Le NIRD cherche à remédier à cette dépendance structurelle.",
         "🧹 Le Nettoyage Numérique (Sobriété) : La sobriété numérique est une des activités principales de la démarche NIRD. Cela implique des gestes simples pour réduire la consommation d'énergie des serveurs, comme trier et supprimer les vieux e-mails inutiles, ce qui est un geste d'écocitoyenneté.",
       ],
+    },
+  },
+
+  // Video POI - Femme et Informatique (Pink)
+  {
+    id: "video",
+    type: "video",
+    position: [35, 0.5, 5],
+    color: "#ec4899",
+    title: "Femme et Informatique",
+    icon: "🎬",
+    content: {
+      heading: "Femme et Informatique",
+      description: "Découvrez l'importance de la diversité dans le numérique",
+      videoUrl: "https://www.youtube.com/embed/r36BMACQ29Q",
     },
   },
 ];
@@ -745,15 +796,24 @@ const OBSTACLES = [
   { x: -32, z: 8, width: 2.5, depth: 2.5 },
 ];
 
-export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [], onPlayerPositionUpdate }) {
+export default function GameScene({ onPOITrigger, currentQuest = 'quest1', completedPOIs = [] }) {
   const [npcData, setNpcData] = useState(new Map());
 
-  // Wrapper to handle player position and rotation updates
-  const handlePlayerUpdate = (position, rotation) => {
-    if (onPlayerPositionUpdate) {
-      onPlayerPositionUpdate(position, rotation);
-    }
+  // Map quest IDs to POI IDs
+  const QUEST_TO_POI = {
+    'quest1': 'quiz1',
+    'quest2': 'quiz2',
+    'quest3': 'quiz3',
+    'quest4': 'quiz4',
+    'side1': 'funfact',
+    'side2': 'chatbot',
+    'side3': 'video'
   };
+
+  // Get the target POI for the current quest
+  const targetPOIId = QUEST_TO_POI[currentQuest];
+  const targetPOI = POIS.find(poi => poi.id === targetPOIId);
+  const showArrow = targetPOI && !completedPOIs.includes(targetPOIId);
 
   // Callback to collect NPC position and collision data from each NPC
   const handleGetNPCData = (npcId, data) => {
@@ -941,8 +1001,12 @@ export default function GameScene({ onPOITrigger, currentQuest = 'quest1', compl
         obstacles={OBSTACLES}
         npcData={npcData}
         completedPOIs={completedPOIs}
-        onPositionUpdate={handlePlayerUpdate}
       />
+
+      {/* Arrow indicator above target POI */}
+      {showArrow && targetPOI && (
+        <QuestArrow position={targetPOI.position} />
+      )}
 
       {/* 3D Arrow indicator removed for performance - using 2D navigation arrow instead */}
     </>

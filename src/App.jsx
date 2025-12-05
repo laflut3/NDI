@@ -8,7 +8,6 @@ import QuestTracker from './QuestTracker'
 import QuestSuccess from './QuestSuccess'
 import LevelUp from './LevelUp'
 import Badges from './Badges'
-import NavigationArrow from './NavigationArrow'
 import { POIS } from './GameScene'
 
 // Define keyboard control mappings
@@ -65,16 +64,6 @@ function App() {
 
   // Locked POI notification
   const [lockedMessage, setLockedMessage] = useState(null)
-
-  // Player position and rotation for navigation arrow
-  const [playerPosition, setPlayerPosition] = useState([0, 0.75, 5])
-  const [playerRotation, setPlayerRotation] = useState(0)
-
-  // Handler for player updates (position and rotation)
-  const handlePlayerUpdate = (position, rotation) => {
-    setPlayerPosition(position)
-    setPlayerRotation(rotation)
-  }
 
   // Listen for locked POI events
   useEffect(() => {
@@ -221,6 +210,10 @@ function App() {
             <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg shadow-purple-500/50"></div>
             <span className="text-white/80 text-xs">Faits Intéressants</span>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-pink-500 shadow-lg shadow-pink-500/50"></div>
+            <span className="text-white/80 text-xs">Vidéo Éducative</span>
+          </div>
         </div>
       </div>
 
@@ -241,7 +234,6 @@ function App() {
             onPOITrigger={setActivePOI}
             currentQuest={currentQuest}
             completedPOIs={completedPOIs}
-            onPlayerPositionUpdate={handlePlayerUpdate}
           />
         </Canvas>
       </KeyboardControls>
@@ -445,27 +437,6 @@ function App() {
         onQuestClick={handleQuestClick}
       />
 
-      {/* Navigation Arrow */}
-      {(() => {
-        // Map quest to POI ID
-        const QUEST_TO_POI = {
-          'quest1': 'quiz1',
-          'quest2': 'quiz2',
-          'quest3': 'quiz3',
-          'quest4': 'quiz4'
-        }
-        const targetPOI = POIS.find(poi => poi.id === QUEST_TO_POI[currentQuest])
-        const showNavigation = targetPOI && !completedPOIs.includes(targetPOI.id)
-
-        return showNavigation ? (
-          <NavigationArrow
-            playerPosition={playerPosition}
-            playerRotation={playerRotation}
-            targetPosition={targetPOI.position}
-            targetName={targetPOI.title}
-          />
-        ) : null
-      })()}
 
       {/* Locked POI Notification */}
       {lockedMessage && (

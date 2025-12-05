@@ -13,34 +13,52 @@ const NavigationArrow = memo(function NavigationArrow({ playerPosition, playerRo
   useEffect(() => {
     if (!playerPosition || !targetPosition) return
 
-    // Throttle updates to max 10 times per second (every 100ms)
-    const now = Date.now()
-    if (now - lastUpdateTime.current < 100) return
-    lastUpdateTime.current = now
-
-    // Calculate direction from player to target
+    // Direction from player to target (world space)
     const dx = targetPosition[0] - playerPosition[0]
     const dz = targetPosition[2] - playerPosition[2]
-
-    // Calculate absolute angle to target (in radians, then degrees)
-    const targetAngleRad = Math.atan2(dx, dz)
-    const targetAngleDeg = (targetAngleRad * 180) / Math.PI
-
-    // Convert player rotation to degrees (player rotation is in radians)
-    const playerAngleDeg = (playerRotation * 180) / Math.PI
-
-    // Calculate relative angle (how much to turn from current facing direction)
-    let relativeAngle = targetAngleDeg - playerAngleDeg
-
-    // Normalize angle to -180 to 180 range
-    while (relativeAngle > 180) relativeAngle -= 360
-    while (relativeAngle < -180) relativeAngle += 360
-
-    setRotation(relativeAngle)
 
     // Calculate distance
     const dist = Math.sqrt(dx * dx + dz * dz)
     setDistance(dist)
+
+    if (dist < 0.1) {
+      setRotation(0) // At target, don't spin
+      return
+    }
+
+    // Angle to target in world space
+    // Using atan2(x, z) where 0° points north (+Z)
+    const angleToTarget = Math.atan2(dx, dz)
+
+    // Normalize player rotation to 0-2π range
+    const normalizedPlayerRotation = ((playerRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
+
+    // Truck faces BACKWARD from movement direction, so add PI
+    const truckFacingAngle = normalizedPlayerRotation + Math.PI
+
+    // Calculate relative angle (how much to rotate arrow)
+    let relativeAngle = angleToTarget - truckFacingAngle
+
+    // Normalize to -π to π
+    while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI
+    while (relativeAngle < -Math.PI) relativeAngle += 2 * Math.PI
+
+    const arrowDegrees = (relativeAngle * 180) / Math.PI
+
+    // Debug - only log every 500ms to reduce spam
+    const now = Date.now()
+    if (now - lastUpdateTime.current > 500) {
+      console.log('🧭 Arrow:', {
+        dist: dist.toFixed(1) + 'm',
+        angleToTarget: (angleToTarget * 180 / Math.PI).toFixed(1) + '°',
+        playerRot: (normalizedPlayerRotation * 180 / Math.PI).toFixed(1) + '°',
+        truckFacing: (truckFacingAngle * 180 / Math.PI).toFixed(1) + '°',
+        arrow: arrowDegrees.toFixed(1) + '°'
+      })
+      lastUpdateTime.current = now
+    }
+
+    setRotation(arrowDegrees)
   }, [playerPosition, playerRotation, targetPosition])
 
   if (!targetPosition) return null

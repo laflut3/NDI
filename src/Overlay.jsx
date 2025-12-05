@@ -49,6 +49,8 @@ export default function Overlay({ poiData, onClose, onContinue }) {
         return <ChatbotContent poiData={poiData} />
       case 'funfact':
         return <FunFactContent poiData={poiData} />
+      case 'video':
+        return <VideoContent poiData={poiData} />
       default:
         return <DefaultContent poiData={poiData} />
     }
@@ -74,6 +76,7 @@ export default function Overlay({ poiData, onClose, onContinue }) {
               <p className="text-white/90 text-sm">
                 {poiData.type === 'chatbot' && 'Assistant Numérique'}
                 {poiData.type === 'funfact' && 'Découverte de Faits'}
+                {poiData.type === 'video' && 'Contenu Vidéo'}
               </p>
             </div>
           </div>
@@ -295,6 +298,51 @@ function FunFactContent({ poiData }) {
         <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-4 rounded-xl text-white text-center">
           <div className="text-3xl font-bold mb-1">96%</div>
           <div className="text-xs text-white/90">Des serveurs utilisent Linux</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Video POI Content - Displays embedded YouTube video
+function VideoContent({ poiData }) {
+  return (
+    <div className="space-y-6">
+      {/* Introduction */}
+      <div className="bg-gradient-to-br from-pink-500 to-rose-500 p-6 rounded-xl text-white">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">🎬</div>
+          <div>
+            <h3 className="text-xl font-bold mb-2">{poiData.content.heading}</h3>
+            <p className="text-white/90 leading-relaxed">
+              {poiData.content.description}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Video Player */}
+      <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
+        <iframe
+          className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg"
+          src={poiData.content.videoUrl}
+          title={poiData.content.heading}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+
+      {/* Additional Info */}
+      <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-xl border-2 border-pink-200">
+        <div className="flex items-start gap-4">
+          <div className="text-3xl">💡</div>
+          <div>
+            <h5 className="font-bold text-gray-800 mb-2">Pourquoi c'est important ?</h5>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              La diversité dans le numérique enrichit l'innovation et favorise la création de technologies plus inclusives et équitables pour tous.
+            </p>
+          </div>
         </div>
       </div>
     </div>
